@@ -1,3 +1,35 @@
+var ErrorLogger = (function() {
+	function ErrorLogger() {}
+	ErrorLogger.init = function() {
+		var _this = this;
+		$.Deferred["exceptionHook"] = function(e) {
+			if(e && !e.status) {
+				if(e.stack !== _this.prevErrStack) _this.deferredErrorHandler(e);
+				_this.prevErrStack = e.stack;
+			}
+		};
+		$(document).ajaxError(function(event, respXhr, reqXhr, thrownError) {
+			var dropboxFailedToLoad = reqXhr.url == 'https://www.dropbox.com/static/api/2/dropins.js' && respXhr.status == 404;
+			if(respXhr.status !== 0 && !dropboxFailedToLoad) {
+				var body = reqXhr.data ? reqXhr.data.substring ? reqXhr.data.substring(0, 1000) : reqXhr.data.name : "EMPTY";
+				var message = "AJAX " + respXhr.status + " " + thrownError + "\nRequest URL: " + reqXhr.method + " " + reqXhr.url + "\n\nRequest body: " + body + "\n\nResponse: " + respXhr.responseText;
+				window["logJsError"](message);
+			}
+		});
+	};
+	ErrorLogger.deferredErrorHandler = function(e) {
+		var message = e.toString();
+		message = e.message ? e.message : message;
+		message += e.stack ? "\n" + e.stack : "";
+		window["logJsError"](message);
+	};
+	ErrorLogger.debugLogAdd = function(entry) {
+		window["debugLog"] = window["debugLog"] || [];
+		var date = new Date();
+		window["debugLog"].push(date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds() + "." + date.getMilliseconds() + " - " + entry + ":");
+	};
+	return ErrorLogger;
+}());
 var Eventable = (function() {
 	function Eventable() {
 		this.handlers = {};
@@ -1888,144 +1920,9 @@ var BodyDom = (function(_super) {
 		});
 		return _this_1;
 	}
-	BodyDom.prototype.removeHash = function() {
-		history.replaceState("", document.title, window.location.pathname + window.location.search);
-	};
-	BodyDom.prototype.initializeZoomSlider = function() {
-		var _this = this;
-		this.elZoomSlider.on('input change', function(e, animateManager) {
-			if(animateManager === void 0) {
-				animateManager = true;
-			}
-			_this.currentZoom = this.value;
-			_this.elWorkArea.removeClass('size-0').removeClass('size-1').removeClass('size-2').removeClass('size-3').addClass("size-" + _this.currentZoom);
-			if(animateManager) setTimeout(function() {
-				return _this.animateManagerContainer(jQuery('.sticky-panel.actions-container:not(.hidden)').first(), true);
-			}, 200);
-			_this.setSliderControlsState();
-		});
-		this.elZoomSlider.trigger('change', false);
-		var minValue = parseInt(_this.elZoomSlider.attr('min'));
-		var maxValue = parseInt(_this.elZoomSlider.attr('max'));
-		jQuery('.zoom-in').click(function() {
-			if(_this.currentZoom < maxValue) {
-				_this.currentZoom++;
-				_this.elZoomSlider.val(_this.currentZoom++).trigger('change', true);
-			}
-		});
-		jQuery('.zoom-out').click(function() {
-			if(_this.currentZoom > minValue) _this.currentZoom--;
-			_this.elZoomSlider.val(_this.currentZoom--).trigger('change', true);
-		});
-	};
-	BodyDom.prototype.setSliderControlsState = function() {
-		var minValue = parseInt(this.elZoomSlider.attr('min'));
-		var maxValue = parseInt(this.elZoomSlider.attr('max'));
-		if(this.currentZoom < maxValue) this.elWorkArea.find('.zoom-in').removeClass('disabled');
-		else this.elWorkArea.find('.zoom-in').addClass('disabled');
-		if(this.currentZoom > minValue) this.elWorkArea.find('.zoom-out').removeClass('disabled');
-		else this.elWorkArea.find('.zoom-out').addClass('disabled');
-	};
 	BodyDom.prototype.closeTopNav = function(menuContainer) {
 		menuContainer.addClass('hidden');
 		$('.JStV').removeClass('active');
-	};
-	BodyDom.prototype.togglePasswordView = function(e) {
-		var icon = $(e.currentTarget);
-		var passwordInput = icon.parent().find('input');
-		icon.toggleClass('active');
-		if(passwordInput.attr('type') === 'password') {
-			passwordInput.attr('type', 'text');
-		} else passwordInput.attr('type', 'password');
-	};
-	BodyDom.prototype.getBody = function() {
-		return this.elBody;
-	};
-	BodyDom.prototype.getCaraInfo = function() {
-		return {
-			domain: this.caraDomainName,
-			convertPath: this.caraConvertPath,
-			apiKey: this.caraApiKey
-		};
-	};
-	BodyDom.prototype.getCaraDomainName = function() {
-		return this.caraDomainName;
-	};
-	BodyDom.prototype.getCaraConvertpath = function() {
-		return this.caraConvertPath;
-	};
-	BodyDom.prototype.getSignInPath = function() {
-		return this.signInPath;
-	};
-	BodyDom.prototype.getForgotPasswordPath = function() {
-		return this.forgotPasswordPath;
-	};
-	BodyDom.prototype.getGoogleClientId = function() {
-		return this.GoogleClientId;
-	};
-	BodyDom.prototype.getGoogleDeveloperKey = function() {
-		return this.GoogleDeveloperKey;
-	};
-	BodyDom.prototype.getAuthStatusPath = function() {
-		return this.authStatusPath;
-	};
-	BodyDom.prototype.getTokenCreatePath = function() {
-		return this.tokenCreatePath;
-	};
-	BodyDom.prototype.getTokenConvertedPath = function() {
-		return this.tokenConvertedPath;
-	};
-	BodyDom.prototype.getCaraApiKey = function() {
-		return this.caraApiKey;
-	};
-	BodyDom.prototype.getDropboxAppKey = function() {
-		return this.DropboxAppKey;
-	};
-	BodyDom.prototype.getPaddleVendorId = function() {
-		return this.paddleVendorId;
-	};
-	BodyDom.prototype.getLocale = function() {
-		return this.locale;
-	};
-	BodyDom.prototype.getLocalizationPrefix = function() {
-		return this.locale == 'en' ? '' : "/" + this.locale.toLowerCase();
-	};
-	BodyDom.prototype.showError = function(fileName) {
-		if(fileName === void 0) {
-			fileName = "";
-		}
-		this.showToast(this.labelConversionError.replace("{{fileName}}", fileName), 'error', -1);
-		this.elErrorContainer.removeClass("hidden");
-		DataLayerPush.fileSelectFail(fileName);
-	};
-	BodyDom.prototype.getDefaultConverterMeta = function() {
-		return this.defaultConverterMeta ? this.defaultConverterMeta.trim() : "";
-	};
-	BodyDom.prototype.setAuth = function(userData) {
-		this.elBody.removeClass("auth-unknown authenticated unauthenticated").addClass(userData.authenticated ? "authenticated" : "unauthenticated");
-		$(".user-initial").text(userData.initial);
-		$(".user-name").text(userData.name);
-	};
-	BodyDom.prototype.isAuth = function() {
-		return this.elBody.hasClass("authenticated");
-	};
-	BodyDom.prototype.configureDropbox = function() {
-		this.getBody().append("<script id=\"dropboxjs\" data-app-key=\"" + this.getDropboxAppKey() + "\"></script>");
-	};
-	BodyDom.prototype.initUi = function() {
-		$("[data-confirm]").on("submit", function(e) {
-			return confirm($(e.currentTarget).data("confirm"));
-		});
-		$("[data-toggle]").on("click", function(e) {
-			return Utils.toggleSlideEl($("#" + $(e.currentTarget).data("toggle")));
-		});
-		$.fn.elShow = function() {
-			$(this).removeClass("hidden");
-		};
-		$.fn.elHide = function() {
-			$(this).addClass("hidden");
-		};
-		this.initModal();
 	};
 	BodyDom.prototype.initModal = function() {
 		var _this = this;
