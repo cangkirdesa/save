@@ -327,24 +327,6 @@ var BodyDom = (function(_super) {
 				}
 			}
 		});
-		_this_1.elBody.on('click', '.js-toggle-password', function(e) {
-			_this.togglePasswordView(e);
-		});
-		jQuery('.GrT').click(function() {
-			$(this).parent().toggleClass('open');
-		});
-		_this_1.elZoomSlider = _this_1.elBody.find("#slider");
-		_this_1.currentZoom = _this_1.elZoomSlider.val();
-		_this_1.initializeZoomSlider();
-		_this_1.initializeRangeSlider();
-		window.addEventListener('resize', function() {
-			_this_1.animateManagerContainer(jQuery('.sticky-panel:not(.hidden)').first(), true);
-			_this_1.resizeWorkArea();
-		});
-		if(_this_1.elServerSideToast.length) _this_1.showToast(_this_1.elServerSideToast.data('message'), _this_1.elServerSideToast.data('type'), _this_1.elServerSideToast.data('duration'));
-		$(document).scroll(function() {
-			if(!_this.elBody.hasClass('work-in-progress')) _this.stickSidePanel($(document).scrollTop() > 0);
-		});
 		return _this_1;
 	}
 	BodyDom.prototype.closeTopNav = function(menuContainer) {
