@@ -454,6 +454,11 @@ var BodyDom = (function(_super) {
 		$('.JScMM, .UsM .MnI').click(function() {
 			return _this_1.closeTopNav(_this.elTopNavContainer);
 		});
+		_this_1.elBody.on('click', ('.modal-overlay'), function(event) {
+			if(!$(event.target).hasClass('modal-body') && $(event.target).parents('.modal-body').length === 0) {
+				_this.closeModal();
+			}
+		});
 		$(document).keyup(function(e) {
 			if(e.key === "Escape") {
 				$('.modal-overlay:not(.hidden)').addClass('hidden');
@@ -462,6 +467,16 @@ var BodyDom = (function(_super) {
 				}
 			}
 		});
+		_this_1.elBody.on('click', '.js-toggle-password', function(e) {
+			_this.togglePasswordView(e);
+		});
+		jQuery('.GrT').click(function() {
+			$(this).parent().toggleClass('open');
+		});
+		_this_1.elZoomSlider = _this_1.elBody.find("#slider");
+		_this_1.currentZoom = _this_1.elZoomSlider.val();
+		_this_1.initializeZoomSlider();
+		_this_1.initializeRangeSlider();
 		window.addEventListener('resize', function() {
 			_this_1.animateManagerContainer(jQuery('.sticky-panel:not(.hidden)').first(), true);
 			_this_1.resizeWorkArea();
