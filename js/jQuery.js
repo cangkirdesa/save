@@ -109,55 +109,6 @@ var Dom = (function(_super) {
 	};
 	return Dom;
 }(Eventable));
-var User = (function() {
-	function User() {}
-	User.init = function(dom) {
-		var _this = this;
-		this.dom = dom;
-		setInterval(function() {
-			return _this.refresh();
-		}, 30000);
-		this.dom.bodyDom.bind("multiFileViolation", function() {
-			return _this.dom.showNagSignup(_this.dom.bodyDom.labelMultifileViolation);
-		});
-		this.dom.bodyDom.bind("userStatusChanged", function(e, userData) {
-			return _this.dom.updateUser(userData);
-		});
-		this.dom.bodyDom.bind("panelHide", function(e) {
-			return _this.dom.hideNags();
-		});
-		this.dom.bodyDom.bind("conversionDelay", function(e, delay, fileName) {
-			return _this.dom.toggleWait(true, "", delay, fileName);
-		});
-		this.dataPro().done(function(a) {
-			return dom.updateUser(a);
-		});
-	};
-	User.dataPro = function(refresh) {
-		if(refresh === void 0) {
-			refresh = false;
-		}
-		if(refresh) this.refresh();
-		return $.Deferred(function(def) {
-			var authStatus = window["userData"];
-			if(authStatus) {
-				def.resolve(authStatus);
-			} else {
-				$("#user-data").on("load", function() {
-					return def.resolve(window["userData"]);
-				});
-			}
-		}).promise();
-	};
-	User.refresh = function() {
-		var _this = this;
-		$.getScript(this.dom.bodyDom.getAuthStatusPath() + "?v=" + this.statusReqVer++).done(function() {
-			return _this.dom.trigger("userStatusChanged", window["userData"]);
-		});
-	};
-	User.statusReqVer = Date.now();
-	return User;
-}());
 String.prototype.getFileExtension = function() {
 	return this.split(".").pop().toLowerCase();
 };
