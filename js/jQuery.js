@@ -623,42 +623,6 @@ var BodyDom = (function(_super) {
 	};
 	return BodyDom;
 }(Dom));
-var StartDom = (function(_super) {
-	__extends(StartDom, _super);
-
-	function StartDom(bodyDom) {
-		var _this = _super.call(this) || this;
-		_this.bodyDom = bodyDom;
-		var elBody = _this.bodyDom.getBody();
-		_this.elStartContainer = elBody.find(".StP");
-		return _this;
-	}
-	StartDom.prototype.show = function() {
-		this.elStartContainer.removeClass("hidden");
-	};
-	StartDom.prototype.hide = function() {
-		this.bodyDom.getBody().addClass('work-in-progress');
-		this.elStartContainer.addClass("hidden");
-	};
-	return StartDom;
-}(Dom));
-var Start = (function() {
-	function Start() {}
-	Start.show = function(dom, context, defConvMeta) {
-		return $.Deferred(function(def) {
-			context.bind("fileAdded", function() {
-				return def.resolve(context);
-			}, def.promise());
-			dom.bodyDom.trigger("fileInputSetSrcFormats", Utils.getSrcFormats(defConvMeta));
-			dom.bodyDom.trigger("fileInputSetMultiselect", true);
-		}).then(function(context) {
-			dom.hide();
-			dom.bodyDom.trigger("panelHide startPanelHide");
-			return context;
-		}).promise();
-	};
-	return Start;
-}());
 var Orders = (function() {
 	function Orders() {}
 	Orders.orderClick = function(product) {
