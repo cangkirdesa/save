@@ -345,11 +345,6 @@ var BodyDom = (function(_super) {
 		$('.JScMM, .UsM .MnI').click(function() {
 			return _this_1.closeTopNav(_this.elTopNavContainer);
 		});
-		_this_1.elBody.on('click', ('.modal-overlay'), function(event) {
-			if(!$(event.target).hasClass('modal-body') && $(event.target).parents('.modal-body').length === 0) {
-				_this.closeModal();
-			}
-		});
 		$(document).keyup(function(e) {
 			if(e.key === "Escape") {
 				$('.modal-overlay:not(.hidden)').addClass('hidden');
@@ -385,6 +380,31 @@ var BodyDom = (function(_super) {
 	BodyDom.prototype.getBody = function() {
 		return this.elBody;
 	};
+	BodyDom.prototype.getCaraInfo = function() {
+		return {
+			domain: this.caraDomainName,
+			convertPath: this.caraConvertPath,
+			apiKey: this.caraApiKey
+		};
+	};
+	BodyDom.prototype.getCaraDomainName = function() {
+		return this.caraDomainName;
+	};
+	BodyDom.prototype.getCaraConvertpath = function() {
+		return this.caraConvertPath;
+	};
+	BodyDom.prototype.getSignInPath = function() {
+		return this.signInPath;
+	};
+	BodyDom.prototype.getForgotPasswordPath = function() {
+		return this.forgotPasswordPath;
+	};
+	BodyDom.prototype.getGoogleClientId = function() {
+		return this.GoogleClientId;
+	};
+	BodyDom.prototype.getGoogleDeveloperKey = function() {
+		return this.GoogleDeveloperKey;
+	};
 	BodyDom.prototype.getAuthStatusPath = function() {
 		return this.authStatusPath;
 	};
@@ -393,6 +413,12 @@ var BodyDom = (function(_super) {
 	};
 	BodyDom.prototype.getTokenConvertedPath = function() {
 		return this.tokenConvertedPath;
+	};
+	BodyDom.prototype.getCaraApiKey = function() {
+		return this.caraApiKey;
+	};
+	BodyDom.prototype.getDropboxAppKey = function() {
+		return this.DropboxAppKey;
 	};
 	BodyDom.prototype.getPaddleVendorId = function() {
 		return this.paddleVendorId;
@@ -414,6 +440,51 @@ var BodyDom = (function(_super) {
 	BodyDom.prototype.getDefaultConverterMeta = function() {
 		return this.defaultConverterMeta ? this.defaultConverterMeta.trim() : "";
 	};
+	BodyDom.prototype.setAuth = function(userData) {
+		this.elBody.removeClass("auth-unknown authenticated unauthenticated").addClass(userData.authenticated ? "authenticated" : "unauthenticated");
+		$(".user-initial").text(userData.initial);
+		$(".user-name").text(userData.name);
+	};
+	BodyDom.prototype.isAuth = function() {
+		return this.elBody.hasClass("authenticated");
+	};
+	BodyDom.prototype.configureDropbox = function() {
+		this.getBody().append("<script id=\"dropboxjs\" data-app-key=\"" + this.getDropboxAppKey() + "\"></script>");
+	};
+	BodyDom.prototype.initUi = function() {
+		$("[data-confirm]").on("submit", function(e) {
+			return confirm($(e.currentTarget).data("confirm"));
+		});
+		$("[data-toggle]").on("click", function(e) {
+			return Utils.toggleSlideEl($("#" + $(e.currentTarget).data("toggle")));
+		});
+		$.fn.elShow = function() {
+			$(this).removeClass("hidden");
+		};
+		$.fn.elHide = function() {
+			$(this).addClass("hidden");
+		};
+		this.initModal();
+	};
+	BodyDom.prototype.initModal = function() {
+		var _this = this;
+		if(this.isModal()) {
+			jQuery("#" + Utils.getLocationParameter('modal')).removeClass('hidden').addClass('scale-in');
+		}
+		$("body").on('click', 'a', function(event) {
+			if(this.hash !== "" && _this.isModal(this.hash)) {
+				event.preventDefault();
+				var hash = this.hash;
+				history.pushState(null, null, hash);
+				var element = jQuery("#" + Utils.getLocationParameter('modal', hash));
+				jQuery('.modal-overlay:not(.hidden)').addClass('hidden');
+				element.removeClass('hidden').addClass('scale-in');
+				_this.closeTopNav(_this.elTopNavContainer);
+			}
+		});
+		this.elBody.on('click', '.js-close-modal', function(el) {
+			_this.closeModal();
+		});
 	};
 	BodyDom.prototype.isModal = function(hash) {
 		return Utils.getLocationParameter('modal', hash) && jQuery("#" + Utils.getLocationParameter('modal', hash)).hasClass('modal-overlay');
@@ -438,10 +509,41 @@ var BodyDom = (function(_super) {
 	BodyDom.prototype.getCanconvertInfoPath = function() {
 		return this.canconvertInfoPath;
 	};
+	BodyDom.prototype.showToast = function(message, type, duration) {
+		var _this_1 = this;
+		if(type === void 0) {
+			type = "error";
+		}
+		if(duration === void 0) {
+			duration = 7000;
+		}
+		this.closeToast();
+		var allowActions = duration != -1;
+		var clone = this.elToastTemplate.contents().clone(allowActions);
+		if(!allowActions) clone.find('.js-close-toast').addClass('hidden');
+		else clone.find('.js-close-toast').click(function() {
+			_this_1.closeToast();
+		});
+		clone.addClass(type);
+		clone.find('.content').text(message);
+		this.elHeader.after(clone);
+		setTimeout(function() {
+			clone.removeClass('closed');
+		}, 100);
+		if(duration > 0) setTimeout(function() {
+			_this_1.closeToast();
+		}, duration);
+	};
 	BodyDom.prototype.showSidePanel = function(elem) {
 		jQuery('.side-panel.open').removeClass('open');
 		elem.css('width', '').addClass('open');
 		if(this.elBody.hasClass('work-in-progress') && window.innerWidth > 930) this.elWorkArea.css('width', 'calc(100% - 277px)');
+	};
+	BodyDom.prototype.resizeWorkArea = function() {
+		if(this.elBody.hasClass('work-in-progress') && this.isSidePanelOpen(jQuery('#actions-container'))) {
+			if(window.innerWidth > 930) this.elWorkArea.css('width', 'calc(100% - 277px)');
+			else this.elWorkArea.css('width', '100%');
+		}
 	};
 	BodyDom.prototype.stickSidePanel = function(stick) {
 		var panel = jQuery('#get-premium.open, #nag-wait.open');
@@ -461,8 +563,89 @@ var BodyDom = (function(_super) {
 			elem.removeClass('open');
 		}, 500);
 	};
+	BodyDom.prototype.setConverterMetas = function(meta) {
+		this.elBody.find(".JsM").text(meta.heading1);
+		jQuery('html').removeClass('.l-pdf-converter').addClass('l-' + meta.cssClass);
+		meta.showPageNumbers ? this.elWorkArea.removeClass('JsPL') : this.elWorkArea.addClass('JsPL');
+		meta.showSelectRange ? this.elWorkArea.addClass('file-select-enabled') : this.elWorkArea.removeClass('file-select-enabled');
+	};
+	BodyDom.prototype.showFileActions = function(meta) {
+		var elDeleteAction = jQuery('.control-item.remove');
+		var elMoveAction = jQuery('.control-item.move');
+		var elRotateAction = jQuery('.control-item.rotate');
+		var elSplitAction = jQuery('.control-item.split');
+		meta.showDeleteButton ? elDeleteAction.removeClass('hidden') : elDeleteAction.addClass('hidden');
+		meta.showMoveButton ? elMoveAction.removeClass('hidden') : elMoveAction.addClass('hidden');
+		meta.showRotateButton ? elRotateAction.removeClass('hidden') : elRotateAction.addClass('hidden');
+		meta.showSplitButton ? elSplitAction.removeClass('hidden') : elSplitAction.addClass('hidden');
+	};
+	BodyDom.prototype.globalProgress = function(perc) {
+		var elProg = $(".global-progress");
+		elProg.css("opacity", "1");
+		var uploadFinished = perc === 0;
+		if(uploadFinished) {
+			elProg.css("width", "100%");
+			setTimeout(function() {
+				elProg.css("opacity", "0");
+				setTimeout(function() {
+					elProg.css("width", "0");
+				}, 1000);
+			}, 1000);
+		} else {
+			elProg.css("width", perc + "%");
+		}
+		$(".hide-while-uploading").toggleClass("hidden", !uploadFinished);
+		$(".show-while-uploading").toggleClass("hidden", uploadFinished);
+		$(".upload-progress-perc").text(Math.ceil(perc) + '%');
+	};
 	BodyDom.prototype.isAction = function(action) {
 		return this.elBody.hasClass(action);
+	};
+	BodyDom.prototype.animateManagerContainer = function(element, show) {
+		var workArea = jQuery('.WrAC').parent();
+		if(workArea.length > 0) {
+			var offset = show ? window.innerHeight - workArea.height() - workArea.offset().top - 125 : 0;
+			var innerHeight_1 = element.find(' > div').height() + 50;
+			if(show && innerHeight_1 > offset) offset = innerHeight_1;
+			if(element.find('.other-actions').is(':visible')) offset += 40;
+			if(window.innerWidth > 1170 || (!element.hasClass('converter-panel-container') && window.innerWidth > 930)) {
+				element.css("height", offset + 'px');
+				element.css("top", 'unset');
+			} else {
+				element.css("height", 'auto');
+			}
+		}
+	};
+	BodyDom.prototype.closeToast = function() {
+		jQuery('.toast-wrapper').each(function(i, toast) {
+			$(toast).addClass('closed');
+			setTimeout(function() {
+				toast.remove();
+			}, 500);
+		});
+	};
+	BodyDom.prototype.enableGoogleDrive = function() {
+		this.elGooglePickerBtn.removeClass("disabled");
+	};
+	BodyDom.prototype.enableDropbox = function() {
+		this.elDropboxChooseBtn.removeClass("disabled");
+	};
+	BodyDom.prototype.initializeRangeSlider = function() {
+		var setValue = function(range, rangeV) {
+			var newValue = Number((range.value - range.min) * 100 / (range.max - range.min)),
+				newPosition = 10 - (newValue * 0.2);
+			rangeV.innerHTML = jQuery(rangeV).hasClass('percent') ? "<span>" + range.value + "%</span>" : "<span>" + range.value + "</span>";
+			rangeV.style.left = "calc(" + newValue + "% + (" + newPosition + "px))";
+		};
+		var ranges = jQuery('.js-slider-tooltip');
+		ranges.each(function(i, rangeWrapper) {
+			var range = jQuery(rangeWrapper).find('input[type=range]')[0];
+			var rangeValue = jQuery(rangeWrapper).find('.range-value')[0];
+			setValue(range, rangeValue);
+			range.addEventListener('input', function() {
+				return setValue(range, rangeValue);
+			});
+		});
 	};
 	return BodyDom;
 }(Dom));
