@@ -5040,46 +5040,6 @@ var Init = (function() {
 	};
 	return Init;
 }());
-var StarRatings = (function() {
-	function StarRatings() {}
-	StarRatings.init = function(dom) {
-		var storage = window.sessionStorage;
-		if(storage.getItem(dom.bodyDom.converterName) != null) {
-			dom.incrementTotalVotes();
-			dom.elStarWrapper.removeClass('rating-enabled');
-			dom.elStarWrapper.find("input[type=radio][value=" + storage.getItem(dom.bodyDom.converterName) + "]").attr('checked', 'true');
-			this.hasVoted = true;
-		}
-		var _this = this;
-		dom.elStarRating.click(function(e) {
-			if(!_this.hasVoted) {
-				_this.hasVoted = true;
-				dom.elStarWrapper.removeClass('rating-enabled');
-				dom.incrementTotalVotes();
-				storage.setItem(dom.bodyDom.converterName, jQuery("#" + e.target["htmlFor"]).val());
-			} else e.preventDefault();
-		});
-	};
-	StarRatings.hasVoted = false;
-	return StarRatings;
-}());
-var StarRatingsDom = (function(_super) {
-	__extends(StarRatingsDom, _super);
-
-	function StarRatingsDom(bodyDom) {
-		var _this = _super.call(this) || this;
-		_this.bodyDom = bodyDom;
-		var elBody = _this.bodyDom.getBody();
-		_this.elStarWrapper = elBody.find('.js-stars');
-		_this.elStarRating = elBody.find('.js-stars label');
-		_this.elStarRatingVotes = elBody.find('.js-star-votes');
-		return _this;
-	}
-	StarRatingsDom.prototype.incrementTotalVotes = function() {
-		this.elStarRatingVotes.text(Intl.NumberFormat('en-US').format(parseInt(this.elStarRatingVotes.text().replace(/[,]/g, '')) + 1));
-	};
-	return StarRatingsDom;
-}(Dom));
 var App = (function() {
 	function App() {}
 	App.run = function() {
