@@ -189,6 +189,30 @@ String.prototype.passwordStrength = function() {
 	score = Math.min(score, 100);
 	return Math.round(score);
 };
+var currency_symbols = {
+	'USD': '$',
+	'EUR': 'â‚¬',
+	'CRC': 'â‚¡',
+	'GBP': 'Â£',
+	'ILS': 'â‚ª',
+	'INR': 'â‚¹',
+	'JPY': 'Â¥',
+	'KRW': 'â‚©',
+	'NGN': 'â‚¦',
+	'PHP': 'â‚±',
+	'PYG': 'â‚²',
+	'VND': 'â‚«',
+	'AUD': 'A$',
+	'CAD': 'C$',
+	'DKK': 'Dkr',
+	'TRY': 'TL',
+	'TWD': 'NT$',
+	'BRL': 'R$',
+	'CNY': 'CNÂ¥',
+	'HKD': 'HK$',
+	'NZD': 'NZ$',
+	'MXN ': 'MX$'
+};
 var Utils = (function() {
 	function Utils() {}
 	Utils.toggleSlideEl = function(el) {
