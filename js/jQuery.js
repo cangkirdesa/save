@@ -517,114 +517,9 @@ var BodyDom = (function(_super) {
 			_this.elZoomSlider.val(_this.currentZoom--).trigger('change', true);
 		});
 	};
-	BodyDom.prototype.setSliderControlsState = function() {
-		var minValue = parseInt(this.elZoomSlider.attr('min'));
-		var maxValue = parseInt(this.elZoomSlider.attr('max'));
-		if(this.currentZoom < maxValue) this.elWorkArea.find('.zoom-in').removeClass('disabled');
-		else this.elWorkArea.find('.zoom-in').addClass('disabled');
-		if(this.currentZoom > minValue) this.elWorkArea.find('.zoom-out').removeClass('disabled');
-		else this.elWorkArea.find('.zoom-out').addClass('disabled');
-	};
 	BodyDom.prototype.closeTopNav = function(menuContainer) {
 		menuContainer.addClass('hidden');
 		$('.JStV').removeClass('active');
-	};
-	BodyDom.prototype.togglePasswordView = function(e) {
-		var icon = $(e.currentTarget);
-		var passwordInput = icon.parent().find('input');
-		icon.toggleClass('active');
-		if(passwordInput.attr('type') === 'password') {
-			passwordInput.attr('type', 'text');
-		} else passwordInput.attr('type', 'password');
-	};
-	BodyDom.prototype.getBody = function() {
-		return this.elBody;
-	};
-	BodyDom.prototype.getCaraInfo = function() {
-		return {
-			domain: this.caraDomainName,
-			convertPath: this.caraConvertPath,
-			apiKey: this.caraApiKey
-		};
-	};
-	BodyDom.prototype.getCaraDomainName = function() {
-		return this.caraDomainName;
-	};
-	BodyDom.prototype.getCaraConvertpath = function() {
-		return this.caraConvertPath;
-	};
-	BodyDom.prototype.getSignInPath = function() {
-		return this.signInPath;
-	};
-	BodyDom.prototype.getForgotPasswordPath = function() {
-		return this.forgotPasswordPath;
-	};
-	BodyDom.prototype.getGoogleClientId = function() {
-		return this.GoogleClientId;
-	};
-	BodyDom.prototype.getGoogleDeveloperKey = function() {
-		return this.GoogleDeveloperKey;
-	};
-	BodyDom.prototype.getAuthStatusPath = function() {
-		return this.authStatusPath;
-	};
-	BodyDom.prototype.getTokenCreatePath = function() {
-		return this.tokenCreatePath;
-	};
-	BodyDom.prototype.getTokenConvertedPath = function() {
-		return this.tokenConvertedPath;
-	};
-	BodyDom.prototype.getCaraApiKey = function() {
-		return this.caraApiKey;
-	};
-	BodyDom.prototype.getDropboxAppKey = function() {
-		return this.DropboxAppKey;
-	};
-	BodyDom.prototype.getPaddleVendorId = function() {
-		return this.paddleVendorId;
-	};
-	BodyDom.prototype.getLocale = function() {
-		return this.locale;
-	};
-	BodyDom.prototype.getLocalizationPrefix = function() {
-		return this.locale == 'en' ? '' : "/" + this.locale.toLowerCase();
-	};
-	BodyDom.prototype.showError = function(fileName) {
-		if(fileName === void 0) {
-			fileName = "";
-		}
-		this.showToast(this.labelConversionError.replace("{{fileName}}", fileName), 'error', -1);
-		this.elErrorContainer.removeClass("hidden");
-		DataLayerPush.fileSelectFail(fileName);
-	};
-	BodyDom.prototype.getDefaultConverterMeta = function() {
-		return this.defaultConverterMeta ? this.defaultConverterMeta.trim() : "";
-	};
-	BodyDom.prototype.setAuth = function(userData) {
-		this.elBody.removeClass("auth-unknown authenticated unauthenticated").addClass(userData.authenticated ? "authenticated" : "unauthenticated");
-		$(".user-initial").text(userData.initial);
-		$(".user-name").text(userData.name);
-	};
-	BodyDom.prototype.isAuth = function() {
-		return this.elBody.hasClass("authenticated");
-	};
-	BodyDom.prototype.configureDropbox = function() {
-		this.getBody().append("<script id=\"dropboxjs\" data-app-key=\"" + this.getDropboxAppKey() + "\"></script>");
-	};
-	BodyDom.prototype.initUi = function() {
-		$("[data-confirm]").on("submit", function(e) {
-			return confirm($(e.currentTarget).data("confirm"));
-		});
-		$("[data-toggle]").on("click", function(e) {
-			return Utils.toggleSlideEl($("#" + $(e.currentTarget).data("toggle")));
-		});
-		$.fn.elShow = function() {
-			$(this).removeClass("hidden");
-		};
-		$.fn.elHide = function() {
-			$(this).addClass("hidden");
-		};
-		this.initModal();
 	};
 	BodyDom.prototype.initModal = function() {
 		var _this = this;
@@ -642,32 +537,6 @@ var BodyDom = (function(_super) {
 				_this.closeTopNav(_this.elTopNavContainer);
 			}
 		});
-		this.elBody.on('click', '.js-close-modal', function(el) {
-			_this.closeModal();
-		});
-	};
-	BodyDom.prototype.isModal = function(hash) {
-		return Utils.getLocationParameter('modal', hash) && jQuery("#" + Utils.getLocationParameter('modal', hash)).hasClass('modal-overlay');
-	};
-	BodyDom.prototype.closeModal = function() {
-		this.removeHash();
-		jQuery('.modal-overlay').addClass('hidden').removeClass('scale-in');
-	};
-	BodyDom.prototype.openModal = function(modalId) {
-		jQuery('.modal-overlay').addClass('hidden');
-		jQuery('#' + modalId).removeClass('hidden').addClass('scale-in');
-	};
-	BodyDom.prototype.getRemoteFileInfoPath = function() {
-		return this.remoteFileInfoPath;
-	};
-	BodyDom.prototype.getConversionInfoPath = function() {
-		return this.conversionInfoPath;
-	};
-	BodyDom.prototype.getChainingInfoPath = function() {
-		return this.chainingInfoPath;
-	};
-	BodyDom.prototype.getCanconvertInfoPath = function() {
-		return this.canconvertInfoPath;
 	};
 	BodyDom.prototype.showToast = function(message, type, duration) {
 		var _this_1 = this;
@@ -844,6 +713,124 @@ var Start = (function() {
 		}).promise();
 	};
 	return Start;
+}());
+var Converter = (function() {
+	function Converter() {}
+	Converter.init = function(bodyDom, authStatus) {
+		var caraInfo = bodyDom.getCaraInfo();
+		caraInfo.tokenProFn = Token.createFn(authStatus.token);
+		var defConvMeta = this.getDefConvMeta(bodyDom);
+		var startDom = new StartDom(bodyDom);
+		var fileInputDom = new FileInputDom(bodyDom);
+		FileInput.show(fileInputDom);
+		var context = new Context(caraInfo, null, null);
+		ContextEvents.bind(bodyDom, context, bodyDom.isAuth() || (defConvMeta && defConvMeta.editor.addFiles));
+		var stateId = null;
+		var statePanel = null;
+		if(Utils.getLocationParameter('cid')) {
+			stateId = Utils.getLocationParameter('cid');
+			statePanel = Utils.getLocationParameter('statePanel');
+			statePanel = statePanel ? statePanel : "result";
+		}
+		var flowPro;
+		if(stateId) {
+			startDom.hide();
+			flowPro = Utils.retrieve(stateId, caraInfo.domain).then(function(state) {
+				context.addStateFiles(state["files"]);
+				context.convMeta = state["convMeta"];
+				context.rules = context.convMeta.postRule;
+				return context;
+			}).fail(function() {
+				return Utils.reloadPage(true);
+			});
+		} else {
+			flowPro = Start.show(startDom, context, defConvMeta);
+		}
+		if(!stateId || statePanel === "chain") {
+			flowPro = flowPro.then(function(c) {
+				history.pushState(null, "Files selected");
+				var convMetaPro = ConverterSelector.getConvMeta(new ConverterSelectorDom(bodyDom), c, defConvMeta);
+				convMetaPro.fail(function() {
+					return c.cancel("");
+				});
+				return $.when(c, convMetaPro);
+			}).then(function(c, meta) {
+				ErrorLogger.debugLogAdd("Converter: " + meta.name);
+				bodyDom.setConverterMetas(meta);
+				var newC = new Context(caraInfo, meta, meta.prepareRule);
+				newC.prepAndAddFles(c.getFlesPros());
+				c.cancel("Removing events", false);
+				return newC;
+			}).then(function(c) {
+				if(c.convMeta.editor.visible) {
+					ErrorLogger.debugLogAdd("Showing file manager");
+					ContextEvents.bind(bodyDom, c, true);
+					return Manager.show(new ManagerDom(bodyDom), c);
+				}
+				return c;
+			}).then(function(c) {
+				var newC = new Context(caraInfo, c.convMeta, c.convMeta.postRule);
+				newC.userParams = c.userParams;
+				if(c.groups.length > 0) {
+					c.getGroupFlesPros().forEach(function(g) {
+						return newC.prepAndAddFles([g]);
+					});
+				} else {
+					newC.prepAndAddFles(c.getFlesPros());
+				}
+				c.cancel("Removing events", false);
+				ContextEvents.bind(bodyDom, newC, bodyDom.isAuth());
+				return newC;
+			});
+		}
+		flowPro.then(function(c) {
+			var resultDom = new ResultDom(bodyDom);
+			Result.show(resultDom, c, stateId);
+			ErrorLogger.debugLogAdd("Showing results");
+			if(authStatus.stamp) {
+				resultDom.bind("downloadBtnClick downloadThumbClick", function() {});
+			}
+		}).fail(function(fileName) {
+			if(stateId) {
+				window.location.replace('#');
+			} else {
+				bodyDom.showError(fileName);
+			}
+		});
+	};
+	Converter.getDefConvMeta = function(bodyDom) {
+		var defConvMetaStr = bodyDom.getDefaultConverterMeta();
+		return defConvMetaStr ? JSON.parse(defConvMetaStr) : null;
+	};
+	return Converter;
+}());
+var Orders = (function() {
+	function Orders() {}
+	Orders.orderClick = function(product) {
+		DataLayerPush.send({
+			"event": "SendEvent",
+			"category": "Order",
+			"action": "Order click",
+			"label": product
+		});
+	};
+	Orders.signUpClick = function() {
+		DataLayerPush.send({
+			"event": "SendEvent",
+			"category": "Order",
+			"action": "SignUp click"
+		});
+	};
+	Orders.checkoutEvent = function(event, product) {
+		DataLayerPush.send({
+			"event": "SendEvent",
+			"category": "Checkout",
+			"action": event,
+			"label": product
+		});
+	};
+	Orders.category = "Orders";
+	return Orders;
 }());
 var DataLayerPush = (function() {
 	function DataLayerPush() {}
