@@ -189,6 +189,36 @@ String.prototype.passwordStrength = function() {
 	score = Math.min(score, 100);
 	return Math.round(score);
 };
+var Utils = (function() {
+	function Utils() {}
+	Utils.toggleSlideEl = function(el) {
+		if(el.hasClass("hidden")) {
+			el.hide().removeClass("hidden").slideDown();
+		} else {
+			el.slideUp("fast", function() {
+				return el.addClass("hidden");
+			});
+		}
+	};
+	Utils.showSlideEl = function(el) {
+		el.hide().removeClass("hidden").slideDown();
+	};
+	Utils.hideSlideEl = function(el) {
+		el.slideUp("fast", function() {
+			return el.addClass("hidden");
+		});
+	};
+	Utils.toggleFadeEl = function(el) {
+		if(el.hasClass("hidden")) {
+			el.hide().removeClass("hidden").fadeIn();
+		} else {
+			el.fadeOut("fast", function() {
+				return el.addClass("hidden");
+			});
+		}
+	};
+	return Utils;
+}());
 var BodyDom = (function(_super) {
 	__extends(BodyDom, _super);
 
