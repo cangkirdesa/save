@@ -4512,12 +4512,6 @@ var ManagerDom = (function(_super) {
 	};
 	return ManagerDom;
 }(Dom));
-var CheckboxState;
-(function(CheckboxState) {
-	CheckboxState[CheckboxState["Unchecked"] = 1] = "Unchecked";
-	CheckboxState[CheckboxState["HalfChecked"] = 2] = "HalfChecked";
-	CheckboxState[CheckboxState["Checked"] = 3] = "Checked";
-})(CheckboxState || (CheckboxState = {}));
 var Manager = (function() {
 	function Manager() {}
 	Manager.show = function(dom, context) {
