@@ -521,6 +521,66 @@ var BodyDom = (function(_super) {
 		menuContainer.addClass('hidden');
 		$('.JStV').removeClass('active');
 	};
+	BodyDom.prototype.togglePasswordView = function(e) {
+		var icon = $(e.currentTarget);
+		var passwordInput = icon.parent().find('input');
+		icon.toggleClass('active');
+		if(passwordInput.attr('type') === 'password') {
+			passwordInput.attr('type', 'text');
+		} else passwordInput.attr('type', 'password');
+	};
+	BodyDom.prototype.getBody = function() {
+		return this.elBody;
+	};
+	BodyDom.prototype.getCaraInfo = function() {
+		return {
+			domain: this.caraDomainName,
+			convertPath: this.caraConvertPath,
+			apiKey: this.caraApiKey
+		};
+	};
+	BodyDom.prototype.getCaraDomainName = function() {
+		return this.caraDomainName;
+	};
+	BodyDom.prototype.getCaraConvertpath = function() {
+		return this.caraConvertPath;
+	};
+	BodyDom.prototype.getSignInPath = function() {
+		return this.signInPath;
+	};
+	BodyDom.prototype.getForgotPasswordPath = function() {
+		return this.forgotPasswordPath;
+	};
+	BodyDom.prototype.getGoogleClientId = function() {
+		return this.GoogleClientId;
+	};
+	BodyDom.prototype.getGoogleDeveloperKey = function() {
+		return this.GoogleDeveloperKey;
+	};
+	BodyDom.prototype.getAuthStatusPath = function() {
+		return this.authStatusPath;
+	};
+	BodyDom.prototype.getTokenCreatePath = function() {
+		return this.tokenCreatePath;
+	};
+	BodyDom.prototype.getTokenConvertedPath = function() {
+		return this.tokenConvertedPath;
+	};
+	BodyDom.prototype.getCaraApiKey = function() {
+		return this.caraApiKey;
+	};
+	BodyDom.prototype.getDropboxAppKey = function() {
+		return this.DropboxAppKey;
+	};
+	BodyDom.prototype.getPaddleVendorId = function() {
+		return this.paddleVendorId;
+	};
+	BodyDom.prototype.getLocale = function() {
+		return this.locale;
+	};
+	BodyDom.prototype.getLocalizationPrefix = function() {
+		return this.locale == 'en' ? '' : "/" + this.locale.toLowerCase();
+	};
 	BodyDom.prototype.showError = function(fileName) {
 		if(fileName === void 0) {
 			fileName = "";
