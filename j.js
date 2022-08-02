@@ -1668,6 +1668,10 @@ var BodyDom = (function(_super) {
 		jQuery('.GrT').click(function() {
 			$(this).parent().toggleClass('open');
 		});
+		_this_1.elZoomSlider = _this_1.elBody.find("#slider");
+		_this_1.currentZoom = _this_1.elZoomSlider.val();
+		_this_1.initializeZoomSlider();
+		_this_1.initializeRangeSlider();
 		window.addEventListener('resize', function() {
 			_this_1.animateManagerContainer(jQuery('.sticky-panel:not(.hidden)').first(), true);
 			_this_1.resizeWorkArea();
@@ -1681,12 +1685,126 @@ var BodyDom = (function(_super) {
 	BodyDom.prototype.removeHash = function() {
 		history.replaceState("", document.title, window.location.pathname + window.location.search);
 	};
+	BodyDom.prototype.initializeZoomSlider = function() {
+		var _this = this;
+		this.elZoomSlider.on('input change', function(e, animateManager) {
+			if(animateManager === void 0) {
+				animateManager = true;
+			}
+			_this.currentZoom = this.value;
+			_this.elWorkArea.removeClass('size-0').removeClass('size-1').removeClass('size-2').removeClass('size-3').addClass("size-" + _this.currentZoom);
+			if(animateManager) setTimeout(function() {
+				return _this.animateManagerContainer(jQuery('.sticky-panel.actions-container:not(.hidden)').first(), true);
+			}, 200);
+			_this.setSliderControlsState();
+		});
+		this.elZoomSlider.trigger('change', false);
+		var minValue = parseInt(_this.elZoomSlider.attr('min'));
+		var maxValue = parseInt(_this.elZoomSlider.attr('max'));
+		jQuery('.zoom-in').click(function() {
+			if(_this.currentZoom < maxValue) {
+				_this.currentZoom++;
+				_this.elZoomSlider.val(_this.currentZoom++).trigger('change', true);
+			}
+		});
+		jQuery('.zoom-out').click(function() {
+			if(_this.currentZoom > minValue) _this.currentZoom--;
+			_this.elZoomSlider.val(_this.currentZoom--).trigger('change', true);
+		});
+	};
+	BodyDom.prototype.setSliderControlsState = function() {
+		var minValue = parseInt(this.elZoomSlider.attr('min'));
+		var maxValue = parseInt(this.elZoomSlider.attr('max'));
+		if(this.currentZoom < maxValue) this.elWorkArea.find('.zoom-in').removeClass('disabled');
+		else this.elWorkArea.find('.zoom-in').addClass('disabled');
+		if(this.currentZoom > minValue) this.elWorkArea.find('.zoom-out').removeClass('disabled');
+		else this.elWorkArea.find('.zoom-out').addClass('disabled');
+	};
 	BodyDom.prototype.closeTopNav = function(menuContainer) {
 		menuContainer.addClass('hidden');
 		$('.JStV').removeClass('active');
 	};
+	BodyDom.prototype.togglePasswordView = function(e) {
+		var icon = $(e.currentTarget);
+		var passwordInput = icon.parent().find('input');
+		icon.toggleClass('active');
+		if(passwordInput.attr('type') === 'password') {
+			passwordInput.attr('type', 'text');
+		} else passwordInput.attr('type', 'password');
+	};
+	BodyDom.prototype.getBody = function() {
+		return this.elBody;
+	};
+	BodyDom.prototype.getCaraInfo = function() {
+		return {
+			domain: this.caraDomainName,
+			convertPath: this.caraConvertPath,
+			apiKey: this.caraApiKey
+		};
+	};
+	BodyDom.prototype.getCaraDomainName = function() {
+		return this.caraDomainName;
+	};
+	BodyDom.prototype.getCaraConvertpath = function() {
+		return this.caraConvertPath;
+	};
+	BodyDom.prototype.getSignInPath = function() {
+		return this.signInPath;
+	};
+	BodyDom.prototype.getForgotPasswordPath = function() {
+		return this.forgotPasswordPath;
+	};
+	BodyDom.prototype.getGoogleClientId = function() {
+		return this.GoogleClientId;
+	};
+	BodyDom.prototype.getGoogleDeveloperKey = function() {
+		return this.GoogleDeveloperKey;
+	};
 	BodyDom.prototype.getAuthStatusPath = function() {
 		return this.authStatusPath;
+	};
+	BodyDom.prototype.getTokenCreatePath = function() {
+		return this.tokenCreatePath;
+	};
+	BodyDom.prototype.getTokenConvertedPath = function() {
+		return this.tokenConvertedPath;
+	};
+	BodyDom.prototype.getCaraApiKey = function() {
+		return this.caraApiKey;
+	};
+	BodyDom.prototype.getDropboxAppKey = function() {
+		return this.DropboxAppKey;
+	};
+	BodyDom.prototype.getPaddleVendorId = function() {
+		return this.paddleVendorId;
+	};
+	BodyDom.prototype.getLocale = function() {
+		return this.locale;
+	};
+	BodyDom.prototype.getLocalizationPrefix = function() {
+		return this.locale == 'en' ? '' : "/" + this.locale.toLowerCase();
+	};
+	BodyDom.prototype.showError = function(fileName) {
+		if(fileName === void 0) {
+			fileName = "";
+		}
+		this.showToast(this.labelConversionError.replace("{{fileName}}", fileName), 'error', -1);
+		this.elErrorContainer.removeClass("hidden");
+		DataLayerPush.fileSelectFail(fileName);
+	};
+	BodyDom.prototype.getDefaultConverterMeta = function() {
+		return this.defaultConverterMeta ? this.defaultConverterMeta.trim() : "";
+	};
+	BodyDom.prototype.setAuth = function(userData) {
+		this.elBody.removeClass("auth-unknown authenticated unauthenticated").addClass(userData.authenticated ? "authenticated" : "unauthenticated");
+		$(".user-initial").text(userData.initial);
+		$(".user-name").text(userData.name);
+	};
+	BodyDom.prototype.isAuth = function() {
+		return this.elBody.hasClass("authenticated");
+	};
+	BodyDom.prototype.configureDropbox = function() {
+		this.getBody().append("<script id=\"dropboxjs\" data-app-key=\"" + this.getDropboxAppKey() + "\"></script>");
 	};
 	BodyDom.prototype.initUi = function() {
 		$("[data-confirm]").on("submit", function(e) {
@@ -4463,178 +4581,6 @@ var Converter = (function() {
 	};
 	return Converter;
 }());
-var Orders = (function() {
-	function Orders() {}
-	Orders.orderClick = function(product) {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Order",
-			"action": "Order click",
-			"label": product
-		});
-	};
-	Orders.signUpClick = function() {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Order",
-			"action": "SignUp click"
-		});
-	};
-	Orders.checkoutEvent = function(event, product) {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Checkout",
-			"action": event,
-			"label": product
-		});
-	};
-	Orders.category = "Orders";
-	return Orders;
-}());
-var DataLayerPush = (function() {
-	function DataLayerPush() {}
-	DataLayerPush.send = function(any) {
-		if(window["dataLayer"] && window["google_tag_manager"]) {
-			dataLayer.push.apply(null, arguments);
-		}
-	};
-	DataLayerPush.fileSelectLocal = function(type) {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Conversion",
-			"action": "Conversion.Select.Local",
-			"label": type
-		});
-	};
-	DataLayerPush.fileSelectRemote = function(type) {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Conversion",
-			"action": "Conversion.Select.Remote",
-			"label": type
-		});
-	};
-	DataLayerPush.fileSelectFail = function(fileName) {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Conversion",
-			"action": "Conversion.Select.Fail",
-			"label": fileName
-		});
-	};
-	DataLayerPush.fileUploadStart = function(type) {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Conversion",
-			"action": "Conversion.Upload.Start",
-			"label": type
-		});
-	};
-	DataLayerPush.fileUploadSuccess = function(type) {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Conversion",
-			"action": "Conversion.Upload.Success",
-			"label": type
-		});
-	};
-	DataLayerPush.fileUploadFail = function(type) {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Conversion",
-			"action": "Conversion.Upload.Fail",
-			"label": type
-		});
-	};
-	DataLayerPush.conversionStart = function(srcFormat, dstFormat) {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Conversion",
-			"action": "Conversion.Convert.Start",
-			"label": srcFormat + " -> " + dstFormat
-		});
-	};
-	DataLayerPush.conversionSuccess = function() {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Conversion",
-			"action": "Conversion.Convert.Success"
-		});
-	};
-	DataLayerPush.conversionFail = function(srcFormat, dstFormat) {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Conversion",
-			"action": "Conversion.Convert.Fail",
-			"label": srcFormat + " -> " + dstFormat
-		});
-	};
-	DataLayerPush.conversionFixPdf = function(srcFormat, dstFormat) {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Conversion",
-			"action": "Conversion.Convert.Fixing.PDF",
-			"label": srcFormat + " -> " + dstFormat
-		});
-	};
-	DataLayerPush.conversionFixOo = function(srcFormat, dstFormat) {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Conversion",
-			"action": "Conversion.Convert.Fixing.OO",
-			"label": srcFormat + " -> " + dstFormat
-		});
-	};
-	DataLayerPush.orders = Orders;
-	return DataLayerPush;
-}());
-var ConvertCounter = new function() {
-	var originCount = 90000000;
-	var ratePerDay = (2000000 / 30);
-	this.init = function() {
-		this.originDate = new Date(2013, 8, 30, 0, 0, 0, 0);
-		this.calculateCount();
-		this.loop();
-	};
-	this.loop = function() {
-		var rand = Math.round(Math.random() * 3500) + 500;
-		this.interval = setTimeout($.proxy(function() {
-			this.calculateCount();
-			this.loop();
-		}, this), rand);
-	};
-	this.calculateCount = function() {
-		this.now = new Date();
-		this.elapsedDays = (this.now.getTime() - this.originDate.getTime()) / 1000 / 60 / 60 / 24;
-		this.growthRate = Math.pow(1.1, this.elapsedDays / 30);
-		this.count = originCount + Math.round(this.elapsedDays * ratePerDay * this.growthRate);
-		this.set(this.count);
-	};
-	this.set = function(number) {
-		var elCounter = $("#convert-counter");
-		var template = elCounter.data("template");
-		if(elCounter.length && template) {
-			elCounter.html(template.replace("{0}", "<span class=\"count BrT\">" + number.toString().substr(0, 12) + "</span>"));
-		}
-	};
-	this.stop = function() {
-		clearInterval(this.interval);
-	};
-	this.insertNumberGroupSeparator = function(number) {
-		number = number.toString().split("").reverse().join("");
-		var chunks = [],
-			i = 0,
-			count = number.length;
-		while(i < count) {
-			chunks.push(number.slice(i, i += 3));
-		}
-		var numberGroupSeparator = $("body").data("number-group-separator");
-		if(numberGroupSeparator === "&#160;") numberGroupSeparator = " ";
-		number = chunks.join(numberGroupSeparator);
-		number = number.toString().split("").reverse().join("");
-		return number;
-	};
-};
 var Navigation = (function() {
 	function Navigation() {}
 	Navigation.init = function() {
@@ -4651,38 +4597,6 @@ var Navigation = (function() {
 		};
 	};
 	return Navigation;
-}());
-var Init = (function() {
-	function Init() {}
-	Init.domReady = function() {
-		var bodyDom = new BodyDom();
-		User.init(new UserDom(bodyDom));
-		ConvertCounter.init();
-		StarRatings.init(new StarRatingsDom(bodyDom));
-		if(bodyDom.isAction("converter")) {
-			User.dataPro().done(function(authStatus) {
-				return Converter.init(bodyDom, authStatus);
-			});
-			var dragAndDropDom = new DragAndDropDom(bodyDom);
-			GooglePicker.registerEvents(bodyDom, bodyDom.getGoogleDeveloperKey(), bodyDom.getGoogleClientId(), bodyDom.getLocale());
-			DropboxIntegration.registerEvents(bodyDom);
-			setTimeout(function() {
-				if(!bodyDom.isAction('display-result')) {
-					Google.loadModule("auth").done(function() {
-						return bodyDom.enableGoogleDrive();
-					});
-					DropboxIntegration.loadLib().done(function() {
-						return bodyDom.enableDropbox();
-					});
-				}
-			}, 1500);
-		} else if(bodyDom.isAction("membership") || bodyDom.isAction("ordercompleted")) {
-			Prices.show(new PricesDom(bodyDom), bodyDom.getPaddleVendorId());
-		} else if(bodyDom.isAction("offers")) {
-			Prices.setPriceWithDiscount(new PricesDom(bodyDom));
-		}
-	};
-	return Init;
 }());
 var StarRatings = (function() {
 	function StarRatings() {}
