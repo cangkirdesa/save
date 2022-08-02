@@ -451,6 +451,22 @@ var BodyDom = (function(_super) {
 				_this.closeTopNav(_this.elTopNavContainer);
 			}
 		});
+		$('.JScMM, .UsM .MnI').click(function() {
+			return _this_1.closeTopNav(_this.elTopNavContainer);
+		});
+		$(document).keyup(function(e) {
+			if(e.key === "Escape") {
+				$('.modal-overlay:not(.hidden)').addClass('hidden');
+				if(!_this.elTopNavContainer.hasClass('hidden')) {
+					_this.elTopNavContainer.addClass('hidden');
+				}
+			}
+		});
+		jQuery('.GrT').click(function() {
+			$(this).parent().toggleClass('open');
+		});
+		return _this_1;
+	}
 	BodyDom.prototype.closeTopNav = function(menuContainer) {
 		menuContainer.addClass('hidden');
 		$('.JStV').removeClass('active');
