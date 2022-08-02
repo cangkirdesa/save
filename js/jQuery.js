@@ -521,6 +521,43 @@ var BodyDom = (function(_super) {
 		menuContainer.addClass('hidden');
 		$('.JStV').removeClass('active');
 	};
+	BodyDom.prototype.showError = function(fileName) {
+		if(fileName === void 0) {
+			fileName = "";
+		}
+		this.showToast(this.labelConversionError.replace("{{fileName}}", fileName), 'error', -1);
+		this.elErrorContainer.removeClass("hidden");
+		DataLayerPush.fileSelectFail(fileName);
+	};
+	BodyDom.prototype.getDefaultConverterMeta = function() {
+		return this.defaultConverterMeta ? this.defaultConverterMeta.trim() : "";
+	};
+	BodyDom.prototype.setAuth = function(userData) {
+		this.elBody.removeClass("auth-unknown authenticated unauthenticated").addClass(userData.authenticated ? "authenticated" : "unauthenticated");
+		$(".user-initial").text(userData.initial);
+		$(".user-name").text(userData.name);
+	};
+	BodyDom.prototype.isAuth = function() {
+		return this.elBody.hasClass("authenticated");
+	};
+	BodyDom.prototype.configureDropbox = function() {
+		this.getBody().append("<script id=\"dropboxjs\" data-app-key=\"" + this.getDropboxAppKey() + "\"></script>");
+	};
+	BodyDom.prototype.initUi = function() {
+		$("[data-confirm]").on("submit", function(e) {
+			return confirm($(e.currentTarget).data("confirm"));
+		});
+		$("[data-toggle]").on("click", function(e) {
+			return Utils.toggleSlideEl($("#" + $(e.currentTarget).data("toggle")));
+		});
+		$.fn.elShow = function() {
+			$(this).removeClass("hidden");
+		};
+		$.fn.elHide = function() {
+			$(this).addClass("hidden");
+		};
+		this.initModal();
+	};
 	BodyDom.prototype.initModal = function() {
 		var _this = this;
 		if(this.isModal()) {
@@ -537,6 +574,32 @@ var BodyDom = (function(_super) {
 				_this.closeTopNav(_this.elTopNavContainer);
 			}
 		});
+		this.elBody.on('click', '.js-close-modal', function(el) {
+			_this.closeModal();
+		});
+	};
+	BodyDom.prototype.isModal = function(hash) {
+		return Utils.getLocationParameter('modal', hash) && jQuery("#" + Utils.getLocationParameter('modal', hash)).hasClass('modal-overlay');
+	};
+	BodyDom.prototype.closeModal = function() {
+		this.removeHash();
+		jQuery('.modal-overlay').addClass('hidden').removeClass('scale-in');
+	};
+	BodyDom.prototype.openModal = function(modalId) {
+		jQuery('.modal-overlay').addClass('hidden');
+		jQuery('#' + modalId).removeClass('hidden').addClass('scale-in');
+	};
+	BodyDom.prototype.getRemoteFileInfoPath = function() {
+		return this.remoteFileInfoPath;
+	};
+	BodyDom.prototype.getConversionInfoPath = function() {
+		return this.conversionInfoPath;
+	};
+	BodyDom.prototype.getChainingInfoPath = function() {
+		return this.chainingInfoPath;
+	};
+	BodyDom.prototype.getCanconvertInfoPath = function() {
+		return this.canconvertInfoPath;
 	};
 	BodyDom.prototype.showToast = function(message, type, duration) {
 		var _this_1 = this;
