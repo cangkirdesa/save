@@ -1,3 +1,103 @@
+var ErrorLogger = (function() {
+	function ErrorLogger() {}
+	ErrorLogger.init = function() {
+		var _this = this;
+		$.Deferred["exceptionHook"] = function(e) {
+			if(e && !e.status) {
+				if(e.stack !== _this.prevErrStack) _this.deferredErrorHandler(e);
+				_this.prevErrStack = e.stack;
+			}
+		};
+		$(document).ajaxError(function(event, respXhr, reqXhr, thrownError) {
+			var dropboxFailedToLoad = reqXhr.url == 'https://www.dropbox.com/static/api/2/dropins.js' && respXhr.status == 404;
+			if(respXhr.status !== 0 && !dropboxFailedToLoad) {
+				var body = reqXhr.data ? reqXhr.data.substring ? reqXhr.data.substring(0, 1000) : reqXhr.data.name : "EMPTY";
+				var message = "AJAX " + respXhr.status + " " + thrownError + "\nRequest URL: " + reqXhr.method + " " + reqXhr.url + "\n\nRequest body: " + body + "\n\nResponse: " + respXhr.responseText;
+				window["logJsError"](message);
+			}
+		});
+	};
+	ErrorLogger.deferredErrorHandler = function(e) {
+		var message = e.toString();
+		message = e.message ? e.message : message;
+		message += e.stack ? "\n" + e.stack : "";
+		window["logJsError"](message);
+	};
+	ErrorLogger.debugLogAdd = function(entry) {
+		window["debugLog"] = window["debugLog"] || [];
+		var date = new Date();
+		window["debugLog"].push(date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds() + "." + date.getMilliseconds() + " - " + entry + ":");
+	};
+	return ErrorLogger;
+}());
+var Eventable = (function() {
+	function Eventable() {
+		this.handlers = {};
+	}
+	Eventable.prototype.bind = function(event, handler, offPro) {
+		var _this = this;
+		if(offPro === void 0) {
+			offPro = null;
+		}
+		$(this).on(event, handler);
+		this.handlers[event] = this.handlers[event] ? this.handlers[event] + 1 : 1;
+		if(offPro) offPro.always(function() {
+			return $(_this).off(event, handler);
+		});
+	};
+	Eventable.prototype.one = function(event, handler, offPro) {
+		var _this = this;
+		if(offPro === void 0) {
+			offPro = null;
+		}
+		$(this).one(event, handler);
+		this.handlers[event] = this.handlers[event] ? this.handlers[event] + 1 : 1;
+		if(offPro) offPro.always(function() {
+			return $(_this).off(event, handler);
+		});
+	};
+	Eventable.prototype.unbind = function(event, handler) {
+		$(this).off(event, handler);
+		this.handlers[event] = this.handlers[event] ? this.handlers[event] - 1 : 0;
+	};
+	Eventable.prototype.hasHandlers = function(event) {
+		return this.handlers[event] && this.handlers[event] > 0;
+	};
+	Eventable.prototype.trigger = function(eventType) {
+		var _this = this;
+		var args = [];
+		for(var _i = 1; _i < arguments.length; _i++) {
+			args[_i - 1] = arguments[_i];
+		}
+		eventType.split(" ").forEach(function(e) {
+			return $(_this).triggerHandler(e, args);
+		});
+	};
+	return Eventable;
+}());
+var __extends = (this && this.__extends) || (function() {
+	var extendStatics = function(d, b) {
+		extendStatics = Object.setPrototypeOf || ({
+				__proto__: []
+			}
+			instanceof Array && function(d, b) {
+				d.__proto__ = b;
+			}) || function(d, b) {
+			for(var p in b)
+				if(Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p];
+		};
+		return extendStatics(d, b);
+	};
+	return function(d, b) {
+		if(typeof b !== "function" && b !== null) throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+		extendStatics(d, b);
+
+		function __() {
+			this.constructor = d;
+		}
+		d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+})();
 var Dom = (function(_super) {
 	__extends(Dom, _super);
 
@@ -9,106 +109,6 @@ var Dom = (function(_super) {
 	};
 	return Dom;
 }(Eventable));
-var UserDom = (function(_super) {
-	__extends(UserDom, _super);
-
-	function UserDom(bodyDom) {
-		var _this = _super.call(this) || this;
-		_this.bodyDom = bodyDom;
-		var elBody = _this.bodyDom.getBody();
-		_this.elNagSignup = elBody.find(".nag-signup");
-		_this.elNagWait = elBody.find(".nag-wait");
-		_this.elSignInForm = elBody.find("#signin-form");
-		_this.elForgotPasswordForm = elBody.find("#forgotten-password-form");
-		_this.elGetPremiumPanel = elBody.find('#get-premium');
-		_this.elWaitPanel = elBody.find('#nag-wait');
-		_this.elSignInForm.on('submit', function(e) {
-			return _this.signIn(e);
-		});
-		_this.elForgotPasswordForm.on('submit', function(e) {
-			return _this.forgotPassword(e);
-		});
-		return _this;
-	}
-	UserDom.prototype.updateUser = function(userData) {
-		if(userData.authenticated && !userData.active) this.showNagSignup(this.bodyDom.labelSuspended);
-	};
-	UserDom.prototype.signIn = function(e) {
-		e.preventDefault();
-		var validationError = this.elSignInForm.find('.validation-error');
-		validationError.addClass('hidden');
-		jQuery.ajax({
-			type: "POST",
-			url: this.bodyDom.getSignInPath(),
-			data: this.elSignInForm.serializeArray(),
-			success: function(data, textStatus, jqXHR) {
-				if(data.success) window.location.href = data.returnUrl;
-				else validationError.removeClass('hidden').text(data.message);
-			}
-		});
-	};
-	UserDom.prototype.forgotPassword = function(e) {
-		e.preventDefault();
-		var validationError = this.elForgotPasswordForm.find('.validation-error');
-		var globalFns = this;
-		validationError.addClass('hidden');
-		jQuery.ajax({
-			type: "POST",
-			url: this.bodyDom.getForgotPasswordPath(),
-			data: this.elForgotPasswordForm.serializeArray(),
-			success: function(data, textStatus, jqXHR) {
-				if(data.success) {
-					globalFns.elForgotPasswordForm.trigger("reset");
-					globalFns.bodyDom.showToast(data.message, "success");
-					jQuery('#forgotpassword').find('.js-close-modal').click();
-				} else validationError.removeClass('hidden').text(data.message);
-			}
-		});
-	};
-	UserDom.prototype.showNagSignup = function(msg) {
-		if(this.bodyDom.getBody().hasClass('converter')) {
-			var elMessage = this.elGetPremiumPanel.find('.js-message');
-			if(msg) elMessage.removeClass('hidden').find('span').html(msg);
-			this.bodyDom.showSidePanel(this.elGetPremiumPanel);
-		}
-	};
-	UserDom.prototype.toggleWait = function(show, expiredMessage, delay, fileName) {
-		if(!this.bodyDom.isSidePanelOpen(this.elGetPremiumPanel) === show) {
-			var elMessage = this.elWaitPanel.find('.js-message');
-			if(expiredMessage) elMessage.removeClass('hidden').find('span').html(expiredMessage);
-			this.elNagWait.find(".file-item").attr("title", fileName).find(".file-name").html(fileName);
-			this.elNagWait.find('.js-clock').html("<time class=\"membership-wait-time\" data-min=\"" + delay + "\">" + delay + ":00</time>");
-			show ? this.bodyDom.showSidePanel(this.elWaitPanel) : this.bodyDom.closeSidePanel(this.elWaitPanel);
-			this.bodyDom.getBody().toggleClass("wait-in-progress", show);
-			var elTime_1 = $(".membership-wait-time");
-			var timer = elTime_1.prop("timer");
-			if(timer) clearInterval(timer);
-			if(show) {
-				timer = setInterval(function() {
-					var remain = (elTime_1.prop("remain") || Number(elTime_1.data("min")) * 60) - 1;
-					if(remain > 0) {
-						elTime_1.prop("remain", remain);
-						var t = new Date(null);
-						t.setSeconds(remain);
-						var min = t.getMinutes().toString();
-						if(min.length < 2) min = "0" + min;
-						var sec = t.getSeconds().toString();
-						if(sec.length < 2) sec = "0" + sec;
-						elTime_1.html(min + ":" + sec);
-					} else {
-						Utils.reloadPage();
-					}
-				}, 1000);
-				elTime_1.prop("timer", timer);
-			}
-		}
-	};
-	UserDom.prototype.hideNags = function() {
-		this.bodyDom.closeSidePanel(this.elGetPremiumPanel);
-		this.bodyDom.closeSidePanel(this.elWaitPanel);
-	};
-	return UserDom;
-}(Dom));
 var User = (function() {
 	function User() {}
 	User.init = function(dom) {
