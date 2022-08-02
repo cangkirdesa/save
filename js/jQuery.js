@@ -385,31 +385,6 @@ var BodyDom = (function(_super) {
 	BodyDom.prototype.getBody = function() {
 		return this.elBody;
 	};
-	BodyDom.prototype.getCaraInfo = function() {
-		return {
-			domain: this.caraDomainName,
-			convertPath: this.caraConvertPath,
-			apiKey: this.caraApiKey
-		};
-	};
-	BodyDom.prototype.getCaraDomainName = function() {
-		return this.caraDomainName;
-	};
-	BodyDom.prototype.getCaraConvertpath = function() {
-		return this.caraConvertPath;
-	};
-	BodyDom.prototype.getSignInPath = function() {
-		return this.signInPath;
-	};
-	BodyDom.prototype.getForgotPasswordPath = function() {
-		return this.forgotPasswordPath;
-	};
-	BodyDom.prototype.getGoogleClientId = function() {
-		return this.GoogleClientId;
-	};
-	BodyDom.prototype.getGoogleDeveloperKey = function() {
-		return this.GoogleDeveloperKey;
-	};
 	BodyDom.prototype.getAuthStatusPath = function() {
 		return this.authStatusPath;
 	};
@@ -418,12 +393,6 @@ var BodyDom = (function(_super) {
 	};
 	BodyDom.prototype.getTokenConvertedPath = function() {
 		return this.tokenConvertedPath;
-	};
-	BodyDom.prototype.getCaraApiKey = function() {
-		return this.caraApiKey;
-	};
-	BodyDom.prototype.getDropboxAppKey = function() {
-		return this.DropboxAppKey;
 	};
 	BodyDom.prototype.getPaddleVendorId = function() {
 		return this.paddleVendorId;
@@ -574,16 +543,6 @@ var BodyDom = (function(_super) {
 		meta.showPageNumbers ? this.elWorkArea.removeClass('JsPL') : this.elWorkArea.addClass('JsPL');
 		meta.showSelectRange ? this.elWorkArea.addClass('file-select-enabled') : this.elWorkArea.removeClass('file-select-enabled');
 	};
-	BodyDom.prototype.showFileActions = function(meta) {
-		var elDeleteAction = jQuery('.control-item.remove');
-		var elMoveAction = jQuery('.control-item.move');
-		var elRotateAction = jQuery('.control-item.rotate');
-		var elSplitAction = jQuery('.control-item.split');
-		meta.showDeleteButton ? elDeleteAction.removeClass('hidden') : elDeleteAction.addClass('hidden');
-		meta.showMoveButton ? elMoveAction.removeClass('hidden') : elMoveAction.addClass('hidden');
-		meta.showRotateButton ? elRotateAction.removeClass('hidden') : elRotateAction.addClass('hidden');
-		meta.showSplitButton ? elSplitAction.removeClass('hidden') : elSplitAction.addClass('hidden');
-	};
 	BodyDom.prototype.globalProgress = function(perc) {
 		var elProg = $(".global-progress");
 		elProg.css("opacity", "1");
@@ -628,12 +587,6 @@ var BodyDom = (function(_super) {
 				toast.remove();
 			}, 500);
 		});
-	};
-	BodyDom.prototype.enableGoogleDrive = function() {
-		this.elGooglePickerBtn.removeClass("disabled");
-	};
-	BodyDom.prototype.enableDropbox = function() {
-		this.elDropboxChooseBtn.removeClass("disabled");
 	};
 	BodyDom.prototype.initializeRangeSlider = function() {
 		var setValue = function(range, rangeV) {
@@ -779,34 +732,6 @@ var Converter = (function() {
 		return defConvMetaStr ? JSON.parse(defConvMetaStr) : null;
 	};
 	return Converter;
-}());
-var Orders = (function() {
-	function Orders() {}
-	Orders.orderClick = function(product) {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Order",
-			"action": "Order click",
-			"label": product
-		});
-	};
-	Orders.signUpClick = function() {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Order",
-			"action": "SignUp click"
-		});
-	};
-	Orders.checkoutEvent = function(event, product) {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Checkout",
-			"action": event,
-			"label": product
-		});
-	};
-	Orders.category = "Orders";
-	return Orders;
 }());
 var DataLayerPush = (function() {
 	function DataLayerPush() {}
