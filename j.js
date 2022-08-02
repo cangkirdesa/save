@@ -133,6 +133,22 @@ var User = (function() {
 			return dom.updateUser(a);
 		});
 	};
+	User.dataPro = function(refresh) {
+		if(refresh === void 0) {
+			refresh = false;
+		}
+		if(refresh) this.refresh();
+		return $.Deferred(function(def) {
+			var authStatus = window["userData"];
+			if(authStatus) {
+				def.resolve(authStatus);
+			} else {
+				$("#user-data").on("load", function() {
+					return def.resolve(window["userData"]);
+				});
+			}
+		}).promise();
+	};
 	User.refresh = function() {
 		var _this = this;
 		$.getScript(this.dom.bodyDom.getAuthStatusPath() + "?v=" + this.statusReqVer++).done(function() {
@@ -142,61 +158,6 @@ var User = (function() {
 	User.statusReqVer = Date.now();
 	return User;
 }());
-String.prototype.getFileExtension = function() {
-	return this.split(".").pop().toLowerCase();
-};
-String.prototype.isUrl = function() {
-	return this.toLowerCase().indexOf("http") === 0;
-};
-String.prototype.isDataUrl = function() {
-	return this.toLowerCase().indexOf("data:") === 0;
-};
-String.prototype.passwordStrength = function() {
-	var score = 0;
-	if(!this) return score;
-	var letters = new Object();
-	for(var i = 0; i < this.length; i++) {
-		letters[this[i]] = (letters[this[i]] || 0) + 1;
-		score += 5.0 / letters[this[i]];
-	}
-	var variations = {
-		digits: /\d/.test(this),
-		lower: /[a-z]/.test(this),
-		upper: /[A-Z]/.test(this),
-		nonWords: /\W/.test(this),
-	};
-	var variationCount = 0;
-	for(var check in variations) {
-		variationCount += (variations[check] == true) ? 1 : 0;
-	}
-	score += (variationCount - 1) * 10;
-	score = Math.min(score, 100);
-	return Math.round(score);
-};
-var currency_symbols = {
-	'USD': '$',
-	'EUR': 'â‚¬',
-	'CRC': 'â‚¡',
-	'GBP': 'Â£',
-	'ILS': 'â‚ª',
-	'INR': 'â‚¹',
-	'JPY': 'Â¥',
-	'KRW': 'â‚©',
-	'NGN': 'â‚¦',
-	'PHP': 'â‚±',
-	'PYG': 'â‚²',
-	'VND': 'â‚«',
-	'AUD': 'A$',
-	'CAD': 'C$',
-	'DKK': 'Dkr',
-	'TRY': 'TL',
-	'TWD': 'NT$',
-	'BRL': 'R$',
-	'CNY': 'CNÂ¥',
-	'HKD': 'HK$',
-	'NZD': 'NZ$',
-	'MXN ': 'MX$'
-};
 var Utils = (function() {
 	function Utils() {}
 	Utils.toggleSlideEl = function(el) {
