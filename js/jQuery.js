@@ -385,6 +385,46 @@ var BodyDom = (function(_super) {
 	BodyDom.prototype.getBody = function() {
 		return this.elBody;
 	};
+	BodyDom.prototype.getAuthStatusPath = function() {
+		return this.authStatusPath;
+	};
+	BodyDom.prototype.getTokenCreatePath = function() {
+		return this.tokenCreatePath;
+	};
+	BodyDom.prototype.getTokenConvertedPath = function() {
+		return this.tokenConvertedPath;
+	};
+	BodyDom.prototype.getPaddleVendorId = function() {
+		return this.paddleVendorId;
+	};
+	BodyDom.prototype.getLocale = function() {
+		return this.locale;
+	};
+	BodyDom.prototype.getLocalizationPrefix = function() {
+		return this.locale == 'en' ? '' : "/" + this.locale.toLowerCase();
+	};
+	BodyDom.prototype.showError = function(fileName) {
+		if(fileName === void 0) {
+			fileName = "";
+		}
+		this.showToast(this.labelConversionError.replace("{{fileName}}", fileName), 'error', -1);
+		this.elErrorContainer.removeClass("hidden");
+		DataLayerPush.fileSelectFail(fileName);
+	};
+	BodyDom.prototype.getDefaultConverterMeta = function() {
+		return this.defaultConverterMeta ? this.defaultConverterMeta.trim() : "";
+	};
+	BodyDom.prototype.setAuth = function(userData) {
+		this.elBody.removeClass("auth-unknown authenticated unauthenticated").addClass(userData.authenticated ? "authenticated" : "unauthenticated");
+		$(".user-initial").text(userData.initial);
+		$(".user-name").text(userData.name);
+	};
+	BodyDom.prototype.isAuth = function() {
+		return this.elBody.hasClass("authenticated");
+	};
+	BodyDom.prototype.configureDropbox = function() {
+		this.getBody().append("<script id=\"dropboxjs\" data-app-key=\"" + this.getDropboxAppKey() + "\"></script>");
+	};
 	BodyDom.prototype.initUi = function() {
 		$("[data-confirm]").on("submit", function(e) {
 			return confirm($(e.currentTarget).data("confirm"));
@@ -503,16 +543,6 @@ var BodyDom = (function(_super) {
 		meta.showPageNumbers ? this.elWorkArea.removeClass('JsPL') : this.elWorkArea.addClass('JsPL');
 		meta.showSelectRange ? this.elWorkArea.addClass('file-select-enabled') : this.elWorkArea.removeClass('file-select-enabled');
 	};
-	BodyDom.prototype.showFileActions = function(meta) {
-		var elDeleteAction = jQuery('.control-item.remove');
-		var elMoveAction = jQuery('.control-item.move');
-		var elRotateAction = jQuery('.control-item.rotate');
-		var elSplitAction = jQuery('.control-item.split');
-		meta.showDeleteButton ? elDeleteAction.removeClass('hidden') : elDeleteAction.addClass('hidden');
-		meta.showMoveButton ? elMoveAction.removeClass('hidden') : elMoveAction.addClass('hidden');
-		meta.showRotateButton ? elRotateAction.removeClass('hidden') : elRotateAction.addClass('hidden');
-		meta.showSplitButton ? elSplitAction.removeClass('hidden') : elSplitAction.addClass('hidden');
-	};
 	BodyDom.prototype.globalProgress = function(perc) {
 		var elProg = $(".global-progress");
 		elProg.css("opacity", "1");
@@ -557,12 +587,6 @@ var BodyDom = (function(_super) {
 				toast.remove();
 			}, 500);
 		});
-	};
-	BodyDom.prototype.enableGoogleDrive = function() {
-		this.elGooglePickerBtn.removeClass("disabled");
-	};
-	BodyDom.prototype.enableDropbox = function() {
-		this.elDropboxChooseBtn.removeClass("disabled");
 	};
 	BodyDom.prototype.initializeRangeSlider = function() {
 		var setValue = function(range, rangeV) {
