@@ -109,32 +109,6 @@ var Dom = (function(_super) {
 	};
 	return Dom;
 }(Eventable));
-var UserDom = (function(_super) {
-	__extends(UserDom, _super);
-
-	function UserDom(bodyDom) {
-		var _this = _super.call(this) || this;
-		_this.bodyDom = bodyDom;
-		var elBody = _this.bodyDom.getBody();
-		_this.elNagSignup = elBody.find(".nag-signup");
-		_this.elNagWait = elBody.find(".nag-wait");
-		_this.elSignInForm = elBody.find("#signin-form");
-		_this.elForgotPasswordForm = elBody.find("#forgotten-password-form");
-		_this.elGetPremiumPanel = elBody.find('#get-premium');
-		_this.elWaitPanel = elBody.find('#nag-wait');
-		_this.elSignInForm.on('submit', function(e) {
-			return _this.signIn(e);
-		});
-		_this.elForgotPasswordForm.on('submit', function(e) {
-			return _this.forgotPassword(e);
-		});
-		return _this;
-	}
-	UserDom.prototype.updateUser = function(userData) {
-		if(userData.authenticated && !userData.active) this.showNagSignup(this.bodyDom.labelSuspended);
-	};
-	return UserDom;
-}(Dom));
 var User = (function() {
 	function User() {}
 	User.init = function(dom) {
