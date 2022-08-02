@@ -1858,22 +1858,6 @@ var BodyDom = (function(_super) {
 			button.parent().find('.hidden').removeClass('hidden');
 			button.addClass('hidden');
 		});
-		_this_1.brandColor = jQuery('.BbC').css('background-color');
-		var dragCounter = 0;
-		_this_1.elDropZone.on('dragenter', function() {
-			_this.elDropZone.css({
-				'border-color': _this.brandColor
-			});
-			dragCounter++;
-		});
-		_this_1.elDropZone.on('dragleave drop', function() {
-			dragCounter--;
-			if(dragCounter === 0) {
-				_this.elDropZone.css({
-					'border-color': '#DEDEDE'
-				});
-			}
-		});
 		_this_1.elTopNavContainer = $('.TmC');
 		$('.JStV').click(function() {
 			$('.img-AtS.JStV').toggleClass('active');
