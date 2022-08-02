@@ -454,6 +454,11 @@ var BodyDom = (function(_super) {
 		$('.JScMM, .UsM .MnI').click(function() {
 			return _this_1.closeTopNav(_this.elTopNavContainer);
 		});
+		_this_1.elBody.on('click', ('.modal-overlay'), function(event) {
+			if(!$(event.target).hasClass('modal-body') && $(event.target).parents('.modal-body').length === 0) {
+				_this.closeModal();
+			}
+		});
 		$(document).keyup(function(e) {
 			if(e.key === "Escape") {
 				$('.modal-overlay:not(.hidden)').addClass('hidden');
@@ -462,14 +467,207 @@ var BodyDom = (function(_super) {
 				}
 			}
 		});
+		_this_1.elBody.on('click', '.js-toggle-password', function(e) {
+			_this.togglePasswordView(e);
+		});
 		jQuery('.GrT').click(function() {
 			$(this).parent().toggleClass('open');
 		});
+		_this_1.elZoomSlider = _this_1.elBody.find("#slider");
+		_this_1.currentZoom = _this_1.elZoomSlider.val();
+		_this_1.initializeZoomSlider();
+		_this_1.initializeRangeSlider();
+		window.addEventListener('resize', function() {
+			_this_1.animateManagerContainer(jQuery('.sticky-panel:not(.hidden)').first(), true);
+			_this_1.resizeWorkArea();
+		});
+		if(_this_1.elServerSideToast.length) _this_1.showToast(_this_1.elServerSideToast.data('message'), _this_1.elServerSideToast.data('type'), _this_1.elServerSideToast.data('duration'));
+		$(document).scroll(function() {
+			if(!_this.elBody.hasClass('work-in-progress')) _this.stickSidePanel($(document).scrollTop() > 0);
+		});
 		return _this_1;
 	}
+	BodyDom.prototype.removeHash = function() {
+		history.replaceState("", document.title, window.location.pathname + window.location.search);
+	};
+	BodyDom.prototype.initializeZoomSlider = function() {
+		var _this = this;
+		this.elZoomSlider.on('input change', function(e, animateManager) {
+			if(animateManager === void 0) {
+				animateManager = true;
+			}
+			_this.currentZoom = this.value;
+			_this.elWorkArea.removeClass('size-0').removeClass('size-1').removeClass('size-2').removeClass('size-3').addClass("size-" + _this.currentZoom);
+			if(animateManager) setTimeout(function() {
+				return _this.animateManagerContainer(jQuery('.sticky-panel.actions-container:not(.hidden)').first(), true);
+			}, 200);
+			_this.setSliderControlsState();
+		});
+		this.elZoomSlider.trigger('change', false);
+		var minValue = parseInt(_this.elZoomSlider.attr('min'));
+		var maxValue = parseInt(_this.elZoomSlider.attr('max'));
+		jQuery('.zoom-in').click(function() {
+			if(_this.currentZoom < maxValue) {
+				_this.currentZoom++;
+				_this.elZoomSlider.val(_this.currentZoom++).trigger('change', true);
+			}
+		});
+		jQuery('.zoom-out').click(function() {
+			if(_this.currentZoom > minValue) _this.currentZoom--;
+			_this.elZoomSlider.val(_this.currentZoom--).trigger('change', true);
+		});
+	};
+	BodyDom.prototype.setSliderControlsState = function() {
+		var minValue = parseInt(this.elZoomSlider.attr('min'));
+		var maxValue = parseInt(this.elZoomSlider.attr('max'));
+		if(this.currentZoom < maxValue) this.elWorkArea.find('.zoom-in').removeClass('disabled');
+		else this.elWorkArea.find('.zoom-in').addClass('disabled');
+		if(this.currentZoom > minValue) this.elWorkArea.find('.zoom-out').removeClass('disabled');
+		else this.elWorkArea.find('.zoom-out').addClass('disabled');
+	};
 	BodyDom.prototype.closeTopNav = function(menuContainer) {
 		menuContainer.addClass('hidden');
 		$('.JStV').removeClass('active');
+	};
+	BodyDom.prototype.togglePasswordView = function(e) {
+		var icon = $(e.currentTarget);
+		var passwordInput = icon.parent().find('input');
+		icon.toggleClass('active');
+		if(passwordInput.attr('type') === 'password') {
+			passwordInput.attr('type', 'text');
+		} else passwordInput.attr('type', 'password');
+	};
+	BodyDom.prototype.getBody = function() {
+		return this.elBody;
+	};
+	BodyDom.prototype.getCaraInfo = function() {
+		return {
+			domain: this.caraDomainName,
+			convertPath: this.caraConvertPath,
+			apiKey: this.caraApiKey
+		};
+	};
+	BodyDom.prototype.getCaraDomainName = function() {
+		return this.caraDomainName;
+	};
+	BodyDom.prototype.getCaraConvertpath = function() {
+		return this.caraConvertPath;
+	};
+	BodyDom.prototype.getSignInPath = function() {
+		return this.signInPath;
+	};
+	BodyDom.prototype.getForgotPasswordPath = function() {
+		return this.forgotPasswordPath;
+	};
+	BodyDom.prototype.getGoogleClientId = function() {
+		return this.GoogleClientId;
+	};
+	BodyDom.prototype.getGoogleDeveloperKey = function() {
+		return this.GoogleDeveloperKey;
+	};
+	BodyDom.prototype.getAuthStatusPath = function() {
+		return this.authStatusPath;
+	};
+	BodyDom.prototype.getTokenCreatePath = function() {
+		return this.tokenCreatePath;
+	};
+	BodyDom.prototype.getTokenConvertedPath = function() {
+		return this.tokenConvertedPath;
+	};
+	BodyDom.prototype.getCaraApiKey = function() {
+		return this.caraApiKey;
+	};
+	BodyDom.prototype.getDropboxAppKey = function() {
+		return this.DropboxAppKey;
+	};
+	BodyDom.prototype.getPaddleVendorId = function() {
+		return this.paddleVendorId;
+	};
+	BodyDom.prototype.getLocale = function() {
+		return this.locale;
+	};
+	BodyDom.prototype.getLocalizationPrefix = function() {
+		return this.locale == 'en' ? '' : "/" + this.locale.toLowerCase();
+	};
+	BodyDom.prototype.showError = function(fileName) {
+		if(fileName === void 0) {
+			fileName = "";
+		}
+		this.showToast(this.labelConversionError.replace("{{fileName}}", fileName), 'error', -1);
+		this.elErrorContainer.removeClass("hidden");
+		DataLayerPush.fileSelectFail(fileName);
+	};
+	BodyDom.prototype.getDefaultConverterMeta = function() {
+		return this.defaultConverterMeta ? this.defaultConverterMeta.trim() : "";
+	};
+	BodyDom.prototype.setAuth = function(userData) {
+		this.elBody.removeClass("auth-unknown authenticated unauthenticated").addClass(userData.authenticated ? "authenticated" : "unauthenticated");
+		$(".user-initial").text(userData.initial);
+		$(".user-name").text(userData.name);
+	};
+	BodyDom.prototype.isAuth = function() {
+		return this.elBody.hasClass("authenticated");
+	};
+	BodyDom.prototype.configureDropbox = function() {
+		this.getBody().append("<script id=\"dropboxjs\" data-app-key=\"" + this.getDropboxAppKey() + "\"></script>");
+	};
+	BodyDom.prototype.initUi = function() {
+		$("[data-confirm]").on("submit", function(e) {
+			return confirm($(e.currentTarget).data("confirm"));
+		});
+		$("[data-toggle]").on("click", function(e) {
+			return Utils.toggleSlideEl($("#" + $(e.currentTarget).data("toggle")));
+		});
+		$.fn.elShow = function() {
+			$(this).removeClass("hidden");
+		};
+		$.fn.elHide = function() {
+			$(this).addClass("hidden");
+		};
+		this.initModal();
+	};
+	BodyDom.prototype.initModal = function() {
+		var _this = this;
+		if(this.isModal()) {
+			jQuery("#" + Utils.getLocationParameter('modal')).removeClass('hidden').addClass('scale-in');
+		}
+		$("body").on('click', 'a', function(event) {
+			if(this.hash !== "" && _this.isModal(this.hash)) {
+				event.preventDefault();
+				var hash = this.hash;
+				history.pushState(null, null, hash);
+				var element = jQuery("#" + Utils.getLocationParameter('modal', hash));
+				jQuery('.modal-overlay:not(.hidden)').addClass('hidden');
+				element.removeClass('hidden').addClass('scale-in');
+				_this.closeTopNav(_this.elTopNavContainer);
+			}
+		});
+		this.elBody.on('click', '.js-close-modal', function(el) {
+			_this.closeModal();
+		});
+	};
+	BodyDom.prototype.isModal = function(hash) {
+		return Utils.getLocationParameter('modal', hash) && jQuery("#" + Utils.getLocationParameter('modal', hash)).hasClass('modal-overlay');
+	};
+	BodyDom.prototype.closeModal = function() {
+		this.removeHash();
+		jQuery('.modal-overlay').addClass('hidden').removeClass('scale-in');
+	};
+	BodyDom.prototype.openModal = function(modalId) {
+		jQuery('.modal-overlay').addClass('hidden');
+		jQuery('#' + modalId).removeClass('hidden').addClass('scale-in');
+	};
+	BodyDom.prototype.getRemoteFileInfoPath = function() {
+		return this.remoteFileInfoPath;
+	};
+	BodyDom.prototype.getConversionInfoPath = function() {
+		return this.conversionInfoPath;
+	};
+	BodyDom.prototype.getChainingInfoPath = function() {
+		return this.chainingInfoPath;
+	};
+	BodyDom.prototype.getCanconvertInfoPath = function() {
+		return this.canconvertInfoPath;
 	};
 	BodyDom.prototype.showToast = function(message, type, duration) {
 		var _this_1 = this;
@@ -925,38 +1123,6 @@ var Navigation = (function() {
 		};
 	};
 	return Navigation;
-}());
-var Init = (function() {
-	function Init() {}
-	Init.domReady = function() {
-		var bodyDom = new BodyDom();
-		User.init(new UserDom(bodyDom));
-		ConvertCounter.init();
-		StarRatings.init(new StarRatingsDom(bodyDom));
-		if(bodyDom.isAction("converter")) {
-			User.dataPro().done(function(authStatus) {
-				return Converter.init(bodyDom, authStatus);
-			});
-			var dragAndDropDom = new DragAndDropDom(bodyDom);
-			GooglePicker.registerEvents(bodyDom, bodyDom.getGoogleDeveloperKey(), bodyDom.getGoogleClientId(), bodyDom.getLocale());
-			DropboxIntegration.registerEvents(bodyDom);
-			setTimeout(function() {
-				if(!bodyDom.isAction('display-result')) {
-					Google.loadModule("auth").done(function() {
-						return bodyDom.enableGoogleDrive();
-					});
-					DropboxIntegration.loadLib().done(function() {
-						return bodyDom.enableDropbox();
-					});
-				}
-			}, 1500);
-		} else if(bodyDom.isAction("membership") || bodyDom.isAction("ordercompleted")) {
-			Prices.show(new PricesDom(bodyDom), bodyDom.getPaddleVendorId());
-		} else if(bodyDom.isAction("offers")) {
-			Prices.setPriceWithDiscount(new PricesDom(bodyDom));
-		}
-	};
-	return Init;
 }());
 var App = (function() {
 	function App() {}
