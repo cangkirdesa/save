@@ -4280,216 +4280,123 @@ var CheckboxState;
 	CheckboxState[CheckboxState["HalfChecked"] = 2] = "HalfChecked";
 	CheckboxState[CheckboxState["Checked"] = 3] = "Checked";
 })(CheckboxState || (CheckboxState = {}));
-var Manager = (function() {
-	function Manager() {}
-	Manager.show = function(dom, context) {
-		var _this = this;
-		dom.bodyDom.trigger("fileInputSetSrcFormats", Utils.getSrcFormats(context.convMeta));
-		dom.bodyDom.trigger("fileInputSetMultiselect", true);
-		dom.show(Utils.getSrcFormats(context.convMeta), context.convMeta.parameter);
-		var contextDef = $.Deferred();
-		contextDef.always(function() {
-			context.cancelThumbnails();
-			dom.hide();
-		});
-		if(!context.getConvMeta().showAddFiles) {
-			dom.hideFileUpload();
+var Converter = (function() {
+	function Converter() {}
+	Converter.init = function(bodyDom, authStatus) {
+		var caraInfo = bodyDom.getCaraInfo();
+		caraInfo.tokenProFn = Token.createFn(authStatus.token);
+		var defConvMeta = this.getDefConvMeta(bodyDom);
+		var startDom = new StartDom(bodyDom);
+		var fileInputDom = new FileInputDom(bodyDom);
+		FileInput.show(fileInputDom);
+		var context = new Context(caraInfo, null, null);
+		ContextEvents.bind(bodyDom, context, bodyDom.isAuth() || (defConvMeta && defConvMeta.editor.addFiles));
+		var stateId = null;
+		var statePanel = null;
+		if(Utils.getLocationParameter('cid')) {
+			stateId = Utils.getLocationParameter('cid');
+			statePanel = Utils.getLocationParameter('statePanel');
+			statePanel = statePanel ? statePanel : "result";
 		}
-		context.getTfles().forEach(function(tFle, idx) {
-			_this.addFile(dom, context, tFle, idx, context.convMeta.prepareRule.splitResult);
-		});
-		context.getAddingPro().progress(function(jobPro) {
-			if(jobPro.state() === "pending") {
-				var proceedBtn_1 = dom.elActionsContainer.find(".convert-btn, .proceed-btn-workaround");
-				proceedBtn_1.addClass('wait-while-uploading');
-				var id_1 = Math.random().toString(36).substring(2);
-				dom.addSpinner(id_1);
-				jobPro.always(function() {
-					proceedBtn_1.removeClass('wait-while-uploading');
-					dom.removeSpinner(id_1);
-					if(context.getFlesPros().length === 0 && !context.convMeta.editor.addFiles) {
-						dom.bodyDom.showError();
-					}
+		var flowPro;
+		if(stateId) {
+			startDom.hide();
+			flowPro = Utils.retrieve(stateId, caraInfo.domain).then(function(state) {
+				context.addStateFiles(state["files"]);
+				context.convMeta = state["convMeta"];
+				context.rules = context.convMeta.postRule;
+				return context;
+			}).fail(function() {
+				return Utils.reloadPage(true);
+			});
+		} else {
+			flowPro = Start.show(startDom, context, defConvMeta);
+		}
+		if(!stateId || statePanel === "chain") {
+			flowPro = flowPro.then(function(c) {
+				history.pushState(null, "Files selected");
+				var convMetaPro = ConverterSelector.getConvMeta(new ConverterSelectorDom(bodyDom), c, defConvMeta);
+				convMetaPro.fail(function() {
+					return c.cancel("");
 				});
-			}
-		});
-		if(jQuery('.file-select-enabled, .l-pdf-split').length > 0) {
-			dom.bind("fileClick", function(e, tFleId, shiftKey) {
-				var tfle = context.getTfleById(tFleId);
-				tfle.selected = !tfle.selected;
-				if(shiftKey && context.lastClickSelectedTFleId) {
-					var lastTFle = context.getTfleById(context.lastClickSelectedTFleId);
-					if(lastTFle) {
-						context.getTfles().slice(context.getTfles().indexOf(lastTFle), context.getTfles().indexOf(tfle)).forEach(function(f) {
-							return f.selected = true;
-						});
-					}
+				return $.when(c, convMetaPro);
+			}).then(function(c, meta) {
+				ErrorLogger.debugLogAdd("Converter: " + meta.name);
+				bodyDom.setConverterMetas(meta);
+				var newC = new Context(caraInfo, meta, meta.prepareRule);
+				newC.prepAndAddFles(c.getFlesPros());
+				c.cancel("Removing events", false);
+				return newC;
+			}).then(function(c) {
+				if(c.convMeta.editor.visible) {
+					ErrorLogger.debugLogAdd("Showing file manager");
+					ContextEvents.bind(bodyDom, c, true);
+					return Manager.show(new ManagerDom(bodyDom), c);
 				}
-				_this.updateFilesDom(dom, context);
-				context.lastClickSelectedTFleId = tfle.selected ? tFleId : null;
-			});
-			dom.bind("fileSelectAll", function() {
-				var allSelected = context.getTfles().every(function(tfle) {
-					return tfle.selected;
-				});
-				context.getTfles().forEach(function(tfle) {
-					tfle.selected = !allSelected;
-				});
-				_this.updateFilesDom(dom, context);
-			});
-			dom.bind("fileSelectionRangeChanged", function(e, range) {
-				var selectedIdxs = Utils.parseRanges(range);
-				context.getTfles().forEach(function(tfle, i) {
-					tfle.selected = selectedIdxs.indexOf(i + 1) >= 0;
-					dom.setFileSelected(tfle.getId(), tfle.selected);
-				});
-				_this.setSelectionChekboxStateByFiles(dom, context.getTfles());
+				return c;
+			}).then(function(c) {
+				var newC = new Context(caraInfo, c.convMeta, c.convMeta.postRule);
+				newC.userParams = c.userParams;
+				if(c.groups.length > 0) {
+					c.getGroupFlesPros().forEach(function(g) {
+						return newC.prepAndAddFles([g]);
+					});
+				} else {
+					newC.prepAndAddFles(c.getFlesPros());
+				}
+				c.cancel("Removing events", false);
+				ContextEvents.bind(bodyDom, newC, bodyDom.isAuth());
+				return newC;
 			});
 		}
-		dom.bind("rotateFileClick", function(e, tFleId) {
-			return _this.rotateFile(dom, context, tFleId);
-		});
-		dom.bind("removeFileClick", function(e, tFleId) {
-			return _this.removeFile(dom, context, tFleId);
-		});
-		dom.bind("splitFileClick", function(e, tFleId) {
-			return _this.splitFile(dom, context, tFleId);
-		});
-		dom.bind("changedSorting", function(e, ids) {
-			return context.reorder(ids);
-		});
-		context.bind("fileAdded", function(e, tFle, idx, showPageNumbers) {
-			if(showPageNumbers === void 0) {
-				showPageNumbers = false;
+		flowPro.then(function(c) {
+			var resultDom = new ResultDom(bodyDom);
+			Result.show(resultDom, c, stateId);
+			ErrorLogger.debugLogAdd("Showing results");
+			if(authStatus.stamp) {
+				resultDom.bind("downloadBtnClick downloadThumbClick", function() {});
 			}
-			return _this.addFile(dom, context, tFle, idx, showPageNumbers);
-		});
-		dom.bind("newVisibleFile", function(e, fileId) {
-			return _this.generateThumbnail(dom, context.getTfleById(fileId));
-		});
-		dom.setButtonLable(context.convMeta.buttonLabel);
-		dom.bind("rotateAllClick", function(e) {
-			return _this.rotateAll(dom, context);
-		});
-		dom.bind("updateFilesDom", function() {
-			return _this.updateFilesDom(dom, context);
-		});
-		dom.bind("rotateRangeClick", function(e, rangeStr) {
-			return _this.rotateRange(dom, context, rangeStr);
-		});
-		dom.bind("removeRangeClick", function(e, rangeStr) {
-			return _this.removeRange(dom, context, rangeStr);
-		});
-		dom.bind("convertClick", function(e, params) {
-			if($('.js-pro-feature').hasClass('selected') && !userData.authenticated) {
-				dom.bodyDom.showSidePanel(dom.elProFeaturesSidePanel);
+		}).fail(function(fileName) {
+			if(stateId) {
+				window.location.replace('#');
 			} else {
-				if(window["managerCustomAction"]) window["managerCustomAction"](dom, context);
-				context.userParams = params;
-				contextDef.resolve(context);
+				bodyDom.showError(fileName);
 			}
 		});
-		if(window["managerCustomActionInit"]) window["managerCustomActionInit"](dom, context);
-		return contextDef.promise();
 	};
-	Manager.updateFilesDom = function(dom, context) {
-		context.getTfles().forEach(function(tfle) {
-			return dom.setFileSelected(tfle.getId(), tfle.selected);
-		});
-		var selectedIdxs = context.getTfles().map(function(tfle, i) {
-			return tfle.selected ? i + 1 : null;
-		}).filter(function(n) {
-			return n;
-		});
-		dom.trigger("fileSelectionChanged", Utils.buildRanges(selectedIdxs));
-		dom.setSplitGroups(context);
-		this.setSelectionChekboxStateByFiles(dom, context.getTfles());
+	Converter.getDefConvMeta = function(bodyDom) {
+		var defConvMetaStr = bodyDom.getDefaultConverterMeta();
+		return defConvMetaStr ? JSON.parse(defConvMetaStr) : null;
 	};
-	Manager.setSelectionChekboxStateByFiles = function(dom, files) {
-		if(files.filter(function(x) {
-				return x.selected;
-			}).length == 0) dom.setSelectionRangeState(CheckboxState.Unchecked);
-		else if(files.filter(function(x) {
-				return !x.selected;
-			}).length == 0) dom.setSelectionRangeState(CheckboxState.Checked);
-		else dom.setSelectionRangeState(CheckboxState.HalfChecked);
-	};
-	Manager.addFile = function(dom, context, tFle, pos, showPageNumbers) {
-		if(!showPageNumbers) showPageNumbers = context.convMeta.prepareRule.splitResult;
-		if(jQuery('.JsPL').length) showPageNumbers = false;
-		tFle.getFlesPro().done(function(fles) {
-			return fles[0].getNamePro().done(function(name) {
-				dom.addFile(tFle.getId(), pos, name, showPageNumbers, context.getConvMeta().fileInfoBeforeConversion);
-				dom.showFileControls(tFle.getId(), context);
-				dom.enableFileActions();
-			});
-		});
-		tFle.getFlesPro().fail(function(message) {
-			context.removeFile(tFle);
-			dom.bodyDom.showToast(dom.bodyDom.labelUnableToAdd);
+	return Converter;
+}());
+var Orders = (function() {
+	function Orders() {}
+	Orders.orderClick = function(product) {
+		DataLayerPush.send({
+			"event": "SendEvent",
+			"category": "Order",
+			"action": "Order click",
+			"label": product
 		});
 	};
-	Manager.generateThumbnail = function(dom, tFle) {
-		if(dom.isVisible() && tFle) {
-			tFle.getThumbnailUrlPro().then(function(url) {
-				return Utils.preloadImage(url);
-			}).then(function(url) {
-				return dom.setFileThumbnail(tFle.getId(), url);
-			}, function() {
-				return tFle.getFlesPro().then(function(fles) {
-					return fles[0].getFormatPro();
-				}).then(function(ext) {
-					return dom.setFileThumbnailPlaceholder(tFle.getId(), ext);
-				});
-			});
-		}
-	};
-	Manager.rotateRange = function(dom, context, rangesStr) {
-		var _this = this;
-		Utils.parseRanges(rangesStr).filter(function(n) {
-			return context.getTfles().length >= n;
-		}).reverse().forEach(function(n) {
-			return _this.rotateFile(dom, context, context.getTfles()[n - 1].getId());
+	Orders.signUpClick = function() {
+		DataLayerPush.send({
+			"event": "SendEvent",
+			"category": "Order",
+			"action": "SignUp click"
 		});
 	};
-	Manager.rotateAll = function(dom, context) {
-		var _this = this;
-		context.getTfles().forEach(function(tfle) {
-			return _this.rotateFile(dom, context, tfle.getId());
+	Orders.checkoutEvent = function(event, product) {
+		DataLayerPush.send({
+			"event": "SendEvent",
+			"category": "Checkout",
+			"action": event,
+			"label": product
 		});
 	};
-	Manager.removeRange = function(dom, context, rangesStr) {
-		var _this = this;
-		Utils.parseRanges(rangesStr).filter(function(n) {
-			return context.getTfles().length >= n;
-		}).reverse().forEach(function(n) {
-			return _this.removeFile(dom, context, context.getTfles()[n - 1].getId());
-		});
-		dom.setSelectionRangeState(CheckboxState.Unchecked);
-	};
-	Manager.rotateFile = function(dom, context, tFleId) {
-		var tFle = context.getTfleById(tFleId);
-		tFle.rotate();
-		dom.rotateFile(tFle.getId(), tFle.getRotationAngle());
-	};
-	Manager.splitFile = function(dom, context, id) {
-		dom.setSpinner(id);
-		context.splitTfle(id).done(function() {
-			dom.removeSpinner(id);
-			dom.removeFile(id);
-		});
-	};
-	Manager.removeFile = function(dom, context, tFleId) {
-		var tFle = context.getTfleById(tFleId);
-		dom.removeFile(tFleId);
-		context.removeFile(tFle);
-		if(context.getTfles().length === 0) {
-			dom.enableFileActions(false);
-			if(!context.convMeta.editor.addFiles) Utils.reloadPage();
-		}
-		dom.setSplitGroups(context);
-	};
-	return Manager;
+	Orders.category = "Orders";
+	return Orders;
 }());
 var DataLayerPush = (function() {
 	function DataLayerPush() {}
@@ -4651,38 +4558,6 @@ var Navigation = (function() {
 		};
 	};
 	return Navigation;
-}());
-var Init = (function() {
-	function Init() {}
-	Init.domReady = function() {
-		var bodyDom = new BodyDom();
-		User.init(new UserDom(bodyDom));
-		ConvertCounter.init();
-		StarRatings.init(new StarRatingsDom(bodyDom));
-		if(bodyDom.isAction("converter")) {
-			User.dataPro().done(function(authStatus) {
-				return Converter.init(bodyDom, authStatus);
-			});
-			var dragAndDropDom = new DragAndDropDom(bodyDom);
-			GooglePicker.registerEvents(bodyDom, bodyDom.getGoogleDeveloperKey(), bodyDom.getGoogleClientId(), bodyDom.getLocale());
-			DropboxIntegration.registerEvents(bodyDom);
-			setTimeout(function() {
-				if(!bodyDom.isAction('display-result')) {
-					Google.loadModule("auth").done(function() {
-						return bodyDom.enableGoogleDrive();
-					});
-					DropboxIntegration.loadLib().done(function() {
-						return bodyDom.enableDropbox();
-					});
-				}
-			}, 1500);
-		} else if(bodyDom.isAction("membership") || bodyDom.isAction("ordercompleted")) {
-			Prices.show(new PricesDom(bodyDom), bodyDom.getPaddleVendorId());
-		} else if(bodyDom.isAction("offers")) {
-			Prices.setPriceWithDiscount(new PricesDom(bodyDom));
-		}
-	};
-	return Init;
 }());
 var StarRatings = (function() {
 	function StarRatings() {}
