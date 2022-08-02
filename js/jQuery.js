@@ -4303,26 +4303,6 @@ var ManagerDom = (function(_super) {
 			}
 		});
 	};
-	ManagerDom.prototype.setSelectionRangeState = function(state) {
-		var checkbox = jQuery('.js-range-select-all .checkbox');
-		var removeRangeBtn = jQuery('.remove-range-btn');
-		if(state == CheckboxState.Unchecked) {
-			this.bodyDom.elWorkArea.removeClass('has-selected-items');
-			checkbox.removeClass('half-checked').removeClass('checked');
-			removeRangeBtn.prop('disabled', true);
-			jQuery('.rotate-range-btn span').text(this.bodyDom.labelRotateAll);
-		} else if(state == CheckboxState.HalfChecked) {
-			!this.bodyDom.elWorkArea.hasClass('has-selected-items') ? this.bodyDom.elWorkArea.addClass('has-selected-items') : null;
-			checkbox.removeClass('checked').addClass('half-checked');
-			removeRangeBtn.prop('disabled', false);
-			jQuery('.rotate-range-btn span').text(this.bodyDom.labelRotateSelected);
-		} else {
-			checkbox.removeClass('half-checked').addClass('checked');
-			!this.bodyDom.elWorkArea.hasClass('has-selected-items') ? this.bodyDom.elWorkArea.addClass('has-selected-items') : null;
-			removeRangeBtn.prop('disabled', false);
-			jQuery('.rotate-range-btn span').text(this.bodyDom.labelRotateSelected);
-		}
-	};
 	ManagerDom.prototype.setActions = function(paramHtml) {
 		var _this_1 = this;
 		var convertBtnTemplate = this.elActionsContainer.data("convert-btn");
