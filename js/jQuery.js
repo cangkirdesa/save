@@ -410,29 +410,6 @@ var BodyDom = (function(_super) {
 		var _this = _this_1;
 		_this_1.locale = $("html").attr("lang");
 		_this_1.elBody = $("body");
-		_this_1.elBody.find(".language-button").on("click", function() {
-			return Utils.showAsDialog($(".language-dialog"));
-		});
-		_this_1.elBody.find(".SgU").on("click", function() {
-			return DataLayerPush.orders.signUpClick();
-		});
-		_this_1.elToastTemplate = _this_1.elBody.find("#js-toast");
-		_this_1.elServerSideToast = _this_1.elBody.find(".js-show-toast");
-		_this_1.elDropZone = _this_1.elBody.find('.JSdR, .JSdR .StP');
-		_this_1.elCloseToast = _this_1.elBody.find('.js-close-toast');
-		_this_1.elHeader = _this_1.elBody.find('.layout-header');
-		_this_1.labelMultifileViolation = _this_1.elBody.data('js-label-multifile-violation');
-		_this_1.configureDropbox();
-		_this_1.initUi();
-		_this_1.bind("userStatusChanged", function(e, userData) {
-			return _this_1.setAuth(userData);
-		});
-		User.dataPro().done(function(userData) {
-			return _this_1.setAuth(userData);
-		});
-		$(".expandable .header").on("click", function(e) {
-			return $(e.currentTarget).toggleClass("img-close").toggleClass("img-arrow-down-rose").siblings(".content").toggleClass("hidden");
-		});
 		_this_1.elCloseToast.on('click', function() {
 			return _this_1.closeToast();
 		});
