@@ -304,9 +304,6 @@ var BodyDom = (function(_super) {
 		_this_1.elBody.find(".language-button").on("click", function() {
 			return Utils.showAsDialog($(".language-dialog"));
 		});
-		_this_1.elBody.find(".SgU").on("click", function() {
-			return DataLayerPush.orders.signUpClick();
-		});
 		_this_1.elToastTemplate = _this_1.elBody.find("#js-toast");
 		_this_1.elServerSideToast = _this_1.elBody.find(".js-show-toast");
 		_this_1.elDropZone = _this_1.elBody.find('.JSdR, .JSdR .StP');
@@ -827,7 +824,6 @@ var DataLayerPush = (function() {
 			"label": srcFormat + " -> " + dstFormat
 		});
 	};
-	DataLayerPush.orders = Orders;
 	return DataLayerPush;
 }());
 var ConvertCounter = new function() {
