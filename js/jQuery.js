@@ -30,51 +30,6 @@ var ErrorLogger = (function() {
 	};
 	return ErrorLogger;
 }());
-var Eventable = (function() {
-	function Eventable() {
-		this.handlers = {};
-	}
-	Eventable.prototype.bind = function(event, handler, offPro) {
-		var _this = this;
-		if(offPro === void 0) {
-			offPro = null;
-		}
-		$(this).on(event, handler);
-		this.handlers[event] = this.handlers[event] ? this.handlers[event] + 1 : 1;
-		if(offPro) offPro.always(function() {
-			return $(_this).off(event, handler);
-		});
-	};
-	Eventable.prototype.one = function(event, handler, offPro) {
-		var _this = this;
-		if(offPro === void 0) {
-			offPro = null;
-		}
-		$(this).one(event, handler);
-		this.handlers[event] = this.handlers[event] ? this.handlers[event] + 1 : 1;
-		if(offPro) offPro.always(function() {
-			return $(_this).off(event, handler);
-		});
-	};
-	Eventable.prototype.unbind = function(event, handler) {
-		$(this).off(event, handler);
-		this.handlers[event] = this.handlers[event] ? this.handlers[event] - 1 : 0;
-	};
-	Eventable.prototype.hasHandlers = function(event) {
-		return this.handlers[event] && this.handlers[event] > 0;
-	};
-	Eventable.prototype.trigger = function(eventType) {
-		var _this = this;
-		var args = [];
-		for(var _i = 1; _i < arguments.length; _i++) {
-			args[_i - 1] = arguments[_i];
-		}
-		eventType.split(" ").forEach(function(e) {
-			return $(_this).triggerHandler(e, args);
-		});
-	};
-	return Eventable;
-}());
 var __extends = (this && this.__extends) || (function() {
 	var extendStatics = function(d, b) {
 		extendStatics = Object.setPrototypeOf || ({
