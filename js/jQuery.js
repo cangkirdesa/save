@@ -217,6 +217,80 @@ var Utils = (function() {
 			});
 		}
 	};
+	Utils.parseRanges = function(rangesStr) {
+		var tmpArr = rangesStr.replace(/[^0-9,\-,\,]/g, "").split(",").map(function(s) {
+			var arr = s.split("-");
+			if(arr.length === 1) {
+				return parseInt(arr[0]);
+			} else if(arr.length > 1) {
+				var a = parseInt(arr[0]);
+				var b = parseInt(arr[1]);
+				if(a !== NaN && b !== NaN) {
+					var rangeArr = [];
+					for(; a <= b; a++) rangeArr.push(a);
+					return rangeArr;
+				}
+			}
+			return NaN;
+		});
+		tmpArr = [].concat.apply([], tmpArr).sort(function(a, b) {
+			return a - b;
+		});
+		return tmpArr.filter(function(n, i) {
+			return n > 0 && (i === 0 || tmpArr[i - 1] !== n);
+		});
+	};
+	Utils.buildRanges = function(items) {
+		return items.reduce(function(acc, cur, i) {
+			if(i === items.length - 1 && acc.last === cur - 1) {
+				acc.val += acc.range > 1 ? "-" : acc.val ? ", " : "";
+				acc.val += cur.toString();
+			} else if(acc.last !== cur - 1) {
+				acc.val += acc.range > 2 ? "-" + acc.last : acc.range > 1 ? ", " + acc.last : "";
+				acc.val += acc.val ? ", " : "";
+				acc.val += cur.toString();
+				acc.range = 0;
+			}
+			acc.last = cur;
+			acc.range++;
+			return acc;
+		}, {
+			val: "",
+			last: -1,
+			range: 0
+		}).val;
+	};
+	Utils.arrContains = function(base, a) {
+		var baseLower = base.map(function(f) {
+			return f.toLocaleLowerCase();
+		});
+		var aLower = a.map(function(f) {
+			return f.toLocaleLowerCase();
+		});
+		return aLower.every(function(f) {
+			return baseLower.indexOf(f) > -1;
+		});
+	};
+	Utils.reloadPage = function(removeHash) {
+		if(removeHash === void 0) {
+			removeHash = true;
+		}
+		if(removeHash) location.hash = "";
+		location.reload();
+	};
+	Utils.getParameterByName = function(name) {
+		var match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+		return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+	};
+	Utils.getLocationParameter = function(name, hash) {
+		var searchString = hash ? hash.replace('#', '?') : window.location.hash.replace('#', '?');
+		var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(searchString);
+		if(results == null) {
+			return null;
+		} else {
+			return decodeURI(results[1]) || 0;
+		}
+	};
 	return Utils;
 }());
 var BodyDom = (function(_super) {
