@@ -4286,42 +4286,6 @@ var ManagerDom = (function(_super) {
 			else $(actionsContainer).find('.proceed-btn-wrapper').removeClass('sticky').parent().find('#advanced-options').toggleClass('extra-padding', false);
 		}, 100);
 	};
-	ManagerDom.prototype.enableSortable = function() {
-		var _this_1 = this;
-		this.sortableEnabled = true;
-		Sortable.create(this.elFiles[0], {
-			draggable: ".draggable",
-			onMove: function(e) {
-				e.related ? !e.related.classList.contains('add-file-container') : true;
-			},
-			onUpdate: function(e) {
-				var ids = _this_1.elFiles.children(".js-file-item").map(function(i, el) {
-					return $(el).attr("id");
-				}).toArray();
-				_this_1.trigger("changedSorting", ids);
-				return _this_1.trigger("updateFilesDom");
-			}
-		});
-	};
-	ManagerDom.prototype.setActions = function(paramHtml) {
-		var _this_1 = this;
-		var convertBtnTemplate = this.elActionsContainer.data("convert-btn");
-		paramHtml = paramHtml ? paramHtml.replace("{{convert-btn}}", convertBtnTemplate) : convertBtnTemplate;
-		this.elActionsContainer.html(paramHtml);
-		this.elConvertBtn = this.elActionsContainer.find(".convert-btn");
-		this.elConvertBtn.on("click", function(e) {
-			return _this_1.trigger("convertClick", _this_1.getParamVals());
-		});
-		this.bodyDom.getBody().bind("rotateRange", function() {
-			var elRotateRange = _this_1.bodyDom.elWorkArea.find("#pageRange");
-			_this_1.trigger("rotateRangeClick", elRotateRange.val());
-		});
-		this.bodyDom.getBody().bind("removeRange", function() {
-			var elRemoveRange = _this_1.bodyDom.elWorkArea.find("#pageRange");
-			_this_1.trigger("removeRangeClick", elRemoveRange.val());
-			elRemoveRange.focus().val("");
-		});
-	};
 	ManagerDom.prototype.getParamVals = function() {
 		var result = {};
 		var elParams = this.elActionsContainer.find("input.parameter-input[type='text'], input.parameter-input[type='number'], input.parameter-input[type='hidden'], select.parameter-input, input.parameter-input[type='password'], input.parameter-input[type='radio']:checked, input.parameter-input[type='checkbox']:checked");
@@ -4351,21 +4315,6 @@ var ManagerDom = (function(_super) {
 	};
 	ManagerDom.prototype.empty = function() {
 		this.elManagerContainer.empty();
-	};
-	ManagerDom.prototype.addFile = function(tFleId, pos, fileName, showPageNumbers, fileInfo) {
-		var fileTemplate = this.elFiles.data("template-file");
-		if(!showPageNumbers) fileTemplate = fileTemplate.replace(/{{name}}/g, fileName);
-		else fileTemplate = fileTemplate.replace(/{{name}}/g, (typeof pos == 'number' ? (pos + 1) : pos[3] + 1));
-		var elFile = $(fileTemplate);
-		elFile.attr("id", tFleId);
-		elFile.find(".file-info").html(fileInfo);
-		var elFileItems = this.elFiles.find(".js-file-item");
-		if(elFileItems.length > pos) {
-			elFile.insertBefore($(elFileItems[pos]));
-		} else {
-			this.elFiles.append(elFile);
-		}
-		$(window).trigger("fileCntChange");
 	};
 	ManagerDom.prototype.showFileControls = function(tFleId, c) {
 		this.getFileControlsEl(tFleId).removeClass("hidden");
