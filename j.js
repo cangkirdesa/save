@@ -109,6 +109,106 @@ var Dom = (function(_super) {
 	};
 	return Dom;
 }(Eventable));
+var UserDom = (function(_super) {
+	__extends(UserDom, _super);
+
+	function UserDom(bodyDom) {
+		var _this = _super.call(this) || this;
+		_this.bodyDom = bodyDom;
+		var elBody = _this.bodyDom.getBody();
+		_this.elNagSignup = elBody.find(".nag-signup");
+		_this.elNagWait = elBody.find(".nag-wait");
+		_this.elSignInForm = elBody.find("#signin-form");
+		_this.elForgotPasswordForm = elBody.find("#forgotten-password-form");
+		_this.elGetPremiumPanel = elBody.find('#get-premium');
+		_this.elWaitPanel = elBody.find('#nag-wait');
+		_this.elSignInForm.on('submit', function(e) {
+			return _this.signIn(e);
+		});
+		_this.elForgotPasswordForm.on('submit', function(e) {
+			return _this.forgotPassword(e);
+		});
+		return _this;
+	}
+	UserDom.prototype.updateUser = function(userData) {
+		if(userData.authenticated && !userData.active) this.showNagSignup(this.bodyDom.labelSuspended);
+	};
+	UserDom.prototype.signIn = function(e) {
+		e.preventDefault();
+		var validationError = this.elSignInForm.find('.validation-error');
+		validationError.addClass('hidden');
+		jQuery.ajax({
+			type: "POST",
+			url: this.bodyDom.getSignInPath(),
+			data: this.elSignInForm.serializeArray(),
+			success: function(data, textStatus, jqXHR) {
+				if(data.success) window.location.href = data.returnUrl;
+				else validationError.removeClass('hidden').text(data.message);
+			}
+		});
+	};
+	UserDom.prototype.forgotPassword = function(e) {
+		e.preventDefault();
+		var validationError = this.elForgotPasswordForm.find('.validation-error');
+		var globalFns = this;
+		validationError.addClass('hidden');
+		jQuery.ajax({
+			type: "POST",
+			url: this.bodyDom.getForgotPasswordPath(),
+			data: this.elForgotPasswordForm.serializeArray(),
+			success: function(data, textStatus, jqXHR) {
+				if(data.success) {
+					globalFns.elForgotPasswordForm.trigger("reset");
+					globalFns.bodyDom.showToast(data.message, "success");
+					jQuery('#forgotpassword').find('.js-close-modal').click();
+				} else validationError.removeClass('hidden').text(data.message);
+			}
+		});
+	};
+	UserDom.prototype.showNagSignup = function(msg) {
+		if(this.bodyDom.getBody().hasClass('converter')) {
+			var elMessage = this.elGetPremiumPanel.find('.js-message');
+			if(msg) elMessage.removeClass('hidden').find('span').html(msg);
+			this.bodyDom.showSidePanel(this.elGetPremiumPanel);
+		}
+	};
+	UserDom.prototype.toggleWait = function(show, expiredMessage, delay, fileName) {
+		if(!this.bodyDom.isSidePanelOpen(this.elGetPremiumPanel) === show) {
+			var elMessage = this.elWaitPanel.find('.js-message');
+			if(expiredMessage) elMessage.removeClass('hidden').find('span').html(expiredMessage);
+			this.elNagWait.find(".file-item").attr("title", fileName).find(".file-name").html(fileName);
+			this.elNagWait.find('.js-clock').html("<time class=\"membership-wait-time\" data-min=\"" + delay + "\">" + delay + ":00</time>");
+			show ? this.bodyDom.showSidePanel(this.elWaitPanel) : this.bodyDom.closeSidePanel(this.elWaitPanel);
+			this.bodyDom.getBody().toggleClass("wait-in-progress", show);
+			var elTime_1 = $(".membership-wait-time");
+			var timer = elTime_1.prop("timer");
+			if(timer) clearInterval(timer);
+			if(show) {
+				timer = setInterval(function() {
+					var remain = (elTime_1.prop("remain") || Number(elTime_1.data("min")) * 60) - 1;
+					if(remain > 0) {
+						elTime_1.prop("remain", remain);
+						var t = new Date(null);
+						t.setSeconds(remain);
+						var min = t.getMinutes().toString();
+						if(min.length < 2) min = "0" + min;
+						var sec = t.getSeconds().toString();
+						if(sec.length < 2) sec = "0" + sec;
+						elTime_1.html(min + ":" + sec);
+					} else {
+						Utils.reloadPage();
+					}
+				}, 1000);
+				elTime_1.prop("timer", timer);
+			}
+		}
+	};
+	UserDom.prototype.hideNags = function() {
+		this.bodyDom.closeSidePanel(this.elGetPremiumPanel);
+		this.bodyDom.closeSidePanel(this.elWaitPanel);
+	};
+	return UserDom;
+}(Dom));
 var User = (function() {
 	function User() {}
 	User.init = function(dom) {
@@ -1547,6 +1647,144 @@ var Utils = (function() {
 	Sortable.version = '1.7.0';
 	return Sortable;
 });
+var DropboxIntegration = (function() {
+	function DropboxIntegration() {}
+	DropboxIntegration.registerEvents = function(dom) {
+		var _this = this;
+		dom.bind("dropboxChooseShow", function() {
+			Dropbox.choose({
+				success: function(files) {
+					var remoteFiles = files.map(function(f) {
+						return {
+							url: f.link,
+							fileName: f.name,
+							headerName: null,
+							headerValue: null
+						};
+					});
+					dom.trigger("dropboxFilesSelected", remoteFiles);
+					DataLayerPush.fileSelectRemote("Dropbox");
+				},
+				linkType: "direct",
+				multiselect: _this.multiselect
+			});
+		});
+	};
+	DropboxIntegration.loadLib = function() {
+		return $.getScript("https://www.dropbox.com/static/api/2/dropins.js");
+	};
+	DropboxIntegration.multiselect = true;
+	return DropboxIntegration;
+}());
+var Google = (function() {
+	function Google() {}
+	Google.loadLib = function() {
+		this.loadDef = this.loadDef || $.Deferred(function(def) {
+			if(gapi && gapi.load) return def.resolve().promise();
+			window["gapi_onload"] = function() {
+				return def.resolve();
+			};
+		}).promise();
+		return this.loadDef;
+	};
+	Google.loadModule = function(name) {
+		var _this = this;
+		return $.Deferred(function(def) {
+			_this.loadLib().done(function() {
+				return gapi.load(name, {
+					callback: function() {
+						return def.resolve();
+					},
+					onerror: function() {
+						return def.reject("Error while loading Google " + name + " library");
+					},
+					timeout: 10000,
+					ontimeout: function() {
+						return def.reject("Timeout while loading Google " + name + " library");
+					}
+				});
+			});
+		}).promise();
+	};
+	return Google;
+}());
+var GooglePicker = (function() {
+	function GooglePicker() {}
+	GooglePicker.registerEvents = function(dom, developerKey, clientId, locale) {
+		dom.bind("googlePickerShow", function() {
+			GooglePicker.getPicker(developerKey, clientId, locale).done(function(files) {
+				var remoteFiles = files.map(function(f) {
+					return {
+						url: f.link,
+						fileName: f.name,
+						headerName: f.headerName,
+						headerValue: f.headerValue
+					};
+				});
+				dom.trigger("gdriveFilesSelected", remoteFiles);
+				DataLayerPush.fileSelectRemote("Gdrive");
+			});
+		});
+	};
+	GooglePicker.getPicker = function(developerKey, clientId, locale) {
+		var _this = this;
+		if(this.picker && this.picker["multiselect"] !== this.multiselect) {
+			this.picker["dispose"]();
+			this.picker = null;
+		}
+		var pickerDef = this.picker ? $.Deferred().resolve(this.picker) : $.when(this.auth(clientId), Google.loadModule("picker")).then(function(oauthToken) {
+			return _this.buildPicker(locale, oauthToken, developerKey);
+		});
+		var fileDef = $.Deferred();
+		pickerDef.done(function(p) {
+			_this.picker = p;
+			p.setCallback(function(data) {
+				return _this.pickerCallback(data, p["oauthToken"], fileDef);
+			});
+			p.setVisible(true);
+		});
+		return fileDef.promise();
+	};
+	GooglePicker.pickerCallback = function(data, oauthToken, def) {
+		if(data[google.picker.Response.ACTION] === google.picker.Action.PICKED) {
+			var docs = data[google.picker.Response.DOCUMENTS];
+			var files = docs.map(function(f) {
+				return({
+					link: "https://www.googleapis.com/drive/v3/files/" + f.id + "?alt=media",
+					name: f.name,
+					headerName: "Authorization",
+					headerValue: "Bearer " + oauthToken
+				});
+			});
+			def.resolve(files);
+		} else if(data[google.picker.Response.ACTION] === google.picker.Action.CANCEL) {
+			def.reject("No files selected");
+		}
+	};
+	GooglePicker.auth = function(clientId) {
+		var def = $.Deferred();
+		gapi.auth.authorize({
+			client_id: clientId,
+			scope: ['https://www.googleapis.com/auth/drive.readonly'],
+			immediate: false
+		}, function(authResult) {
+			if(authResult && !authResult.error) {
+				def.resolve(authResult.access_token);
+			} else {
+				def.reject("Authentication error");
+			}
+		});
+		return def.promise();
+	};
+	GooglePicker.buildPicker = function(locale, oauthToken, developerKey) {
+		var picker = new google.picker.PickerBuilder().addView(google.picker.ViewId.DOCS).enableFeature(this.multiselect ? google.picker.Feature.MULTISELECT_ENABLED : null).setLocale(locale).setOAuthToken(oauthToken).setDeveloperKey(developerKey).build();
+		picker["oauthToken"] = oauthToken;
+		picker["multiselect"] = this.multiselect;
+		return picker;
+	};
+	GooglePicker.multiselect = true;
+	return GooglePicker;
+}());
 var BodyDom = (function(_super) {
 	__extends(BodyDom, _super);
 
