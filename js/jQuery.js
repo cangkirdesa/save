@@ -454,11 +454,6 @@ var BodyDom = (function(_super) {
 		$('.JScMM, .UsM .MnI').click(function() {
 			return _this_1.closeTopNav(_this.elTopNavContainer);
 		});
-		_this_1.elBody.on('click', ('.modal-overlay'), function(event) {
-			if(!$(event.target).hasClass('modal-body') && $(event.target).parents('.modal-body').length === 0) {
-				_this.closeModal();
-			}
-		});
 		$(document).keyup(function(e) {
 			if(e.key === "Escape") {
 				$('.modal-overlay:not(.hidden)').addClass('hidden');
@@ -467,16 +462,6 @@ var BodyDom = (function(_super) {
 				}
 			}
 		});
-		_this_1.elBody.on('click', '.js-toggle-password', function(e) {
-			_this.togglePasswordView(e);
-		});
-		jQuery('.GrT').click(function() {
-			$(this).parent().toggleClass('open');
-		});
-		_this_1.elZoomSlider = _this_1.elBody.find("#slider");
-		_this_1.currentZoom = _this_1.elZoomSlider.val();
-		_this_1.initializeZoomSlider();
-		_this_1.initializeRangeSlider();
 		window.addEventListener('resize', function() {
 			_this_1.animateManagerContainer(jQuery('.sticky-panel:not(.hidden)').first(), true);
 			_this_1.resizeWorkArea();
@@ -493,6 +478,49 @@ var BodyDom = (function(_super) {
 	};
 	BodyDom.prototype.getBody = function() {
 		return this.elBody;
+	};
+	BodyDom.prototype.getCaraInfo = function() {
+		return {
+			domain: this.caraDomainName,
+			convertPath: this.caraConvertPath,
+			apiKey: this.caraApiKey
+		};
+	};
+	BodyDom.prototype.getCaraDomainName = function() {
+		return this.caraDomainName;
+	};
+	BodyDom.prototype.getCaraConvertpath = function() {
+		return this.caraConvertPath;
+	};
+	BodyDom.prototype.getSignInPath = function() {
+		return this.signInPath;
+	};
+	BodyDom.prototype.getForgotPasswordPath = function() {
+		return this.forgotPasswordPath;
+	};
+	BodyDom.prototype.getGoogleClientId = function() {
+		return this.GoogleClientId;
+	};
+	BodyDom.prototype.getGoogleDeveloperKey = function() {
+		return this.GoogleDeveloperKey;
+	};
+	BodyDom.prototype.getAuthStatusPath = function() {
+		return this.authStatusPath;
+	};
+	BodyDom.prototype.getTokenCreatePath = function() {
+		return this.tokenCreatePath;
+	};
+	BodyDom.prototype.getTokenConvertedPath = function() {
+		return this.tokenConvertedPath;
+	};
+	BodyDom.prototype.getCaraApiKey = function() {
+		return this.caraApiKey;
+	};
+	BodyDom.prototype.getDropboxAppKey = function() {
+		return this.DropboxAppKey;
+	};
+	BodyDom.prototype.getPaddleVendorId = function() {
+		return this.paddleVendorId;
 	};
 	BodyDom.prototype.getLocale = function() {
 		return this.locale;
