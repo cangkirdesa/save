@@ -1647,144 +1647,6 @@ var Utils = (function() {
 	Sortable.version = '1.7.0';
 	return Sortable;
 });
-var DropboxIntegration = (function() {
-	function DropboxIntegration() {}
-	DropboxIntegration.registerEvents = function(dom) {
-		var _this = this;
-		dom.bind("dropboxChooseShow", function() {
-			Dropbox.choose({
-				success: function(files) {
-					var remoteFiles = files.map(function(f) {
-						return {
-							url: f.link,
-							fileName: f.name,
-							headerName: null,
-							headerValue: null
-						};
-					});
-					dom.trigger("dropboxFilesSelected", remoteFiles);
-					DataLayerPush.fileSelectRemote("Dropbox");
-				},
-				linkType: "direct",
-				multiselect: _this.multiselect
-			});
-		});
-	};
-	DropboxIntegration.loadLib = function() {
-		return $.getScript("https://www.dropbox.com/static/api/2/dropins.js");
-	};
-	DropboxIntegration.multiselect = true;
-	return DropboxIntegration;
-}());
-var Google = (function() {
-	function Google() {}
-	Google.loadLib = function() {
-		this.loadDef = this.loadDef || $.Deferred(function(def) {
-			if(gapi && gapi.load) return def.resolve().promise();
-			window["gapi_onload"] = function() {
-				return def.resolve();
-			};
-		}).promise();
-		return this.loadDef;
-	};
-	Google.loadModule = function(name) {
-		var _this = this;
-		return $.Deferred(function(def) {
-			_this.loadLib().done(function() {
-				return gapi.load(name, {
-					callback: function() {
-						return def.resolve();
-					},
-					onerror: function() {
-						return def.reject("Error while loading Google " + name + " library");
-					},
-					timeout: 10000,
-					ontimeout: function() {
-						return def.reject("Timeout while loading Google " + name + " library");
-					}
-				});
-			});
-		}).promise();
-	};
-	return Google;
-}());
-var GooglePicker = (function() {
-	function GooglePicker() {}
-	GooglePicker.registerEvents = function(dom, developerKey, clientId, locale) {
-		dom.bind("googlePickerShow", function() {
-			GooglePicker.getPicker(developerKey, clientId, locale).done(function(files) {
-				var remoteFiles = files.map(function(f) {
-					return {
-						url: f.link,
-						fileName: f.name,
-						headerName: f.headerName,
-						headerValue: f.headerValue
-					};
-				});
-				dom.trigger("gdriveFilesSelected", remoteFiles);
-				DataLayerPush.fileSelectRemote("Gdrive");
-			});
-		});
-	};
-	GooglePicker.getPicker = function(developerKey, clientId, locale) {
-		var _this = this;
-		if(this.picker && this.picker["multiselect"] !== this.multiselect) {
-			this.picker["dispose"]();
-			this.picker = null;
-		}
-		var pickerDef = this.picker ? $.Deferred().resolve(this.picker) : $.when(this.auth(clientId), Google.loadModule("picker")).then(function(oauthToken) {
-			return _this.buildPicker(locale, oauthToken, developerKey);
-		});
-		var fileDef = $.Deferred();
-		pickerDef.done(function(p) {
-			_this.picker = p;
-			p.setCallback(function(data) {
-				return _this.pickerCallback(data, p["oauthToken"], fileDef);
-			});
-			p.setVisible(true);
-		});
-		return fileDef.promise();
-	};
-	GooglePicker.pickerCallback = function(data, oauthToken, def) {
-		if(data[google.picker.Response.ACTION] === google.picker.Action.PICKED) {
-			var docs = data[google.picker.Response.DOCUMENTS];
-			var files = docs.map(function(f) {
-				return({
-					link: "https://www.googleapis.com/drive/v3/files/" + f.id + "?alt=media",
-					name: f.name,
-					headerName: "Authorization",
-					headerValue: "Bearer " + oauthToken
-				});
-			});
-			def.resolve(files);
-		} else if(data[google.picker.Response.ACTION] === google.picker.Action.CANCEL) {
-			def.reject("No files selected");
-		}
-	};
-	GooglePicker.auth = function(clientId) {
-		var def = $.Deferred();
-		gapi.auth.authorize({
-			client_id: clientId,
-			scope: ['https://www.googleapis.com/auth/drive.readonly'],
-			immediate: false
-		}, function(authResult) {
-			if(authResult && !authResult.error) {
-				def.resolve(authResult.access_token);
-			} else {
-				def.reject("Authentication error");
-			}
-		});
-		return def.promise();
-	};
-	GooglePicker.buildPicker = function(locale, oauthToken, developerKey) {
-		var picker = new google.picker.PickerBuilder().addView(google.picker.ViewId.DOCS).enableFeature(this.multiselect ? google.picker.Feature.MULTISELECT_ENABLED : null).setLocale(locale).setOAuthToken(oauthToken).setDeveloperKey(developerKey).build();
-		picker["oauthToken"] = oauthToken;
-		picker["multiselect"] = this.multiselect;
-		return picker;
-	};
-	GooglePicker.multiselect = true;
-	return GooglePicker;
-}());
 var BodyDom = (function(_super) {
 	__extends(BodyDom, _super);
 
@@ -1793,29 +1655,6 @@ var BodyDom = (function(_super) {
 		var _this = _this_1;
 		_this_1.locale = $("html").attr("lang");
 		_this_1.elBody = $("body");
-		_this_1.caraDomainName = _this_1.elBody.data("cara-domain-name");
-		_this_1.caraConvertPath = _this_1.elBody.data("cara-convert-path");
-		_this_1.caraApiKey = _this_1.elBody.data("cara-api-key");
-		_this_1.authStatusPath = _this_1.elBody.data("auth-status-path");
-		_this_1.tokenConvertedPath = _this_1.elBody.data("token-converted-path");
-		_this_1.tokenCreatePath = _this_1.elBody.data("token-create-path");
-		_this_1.remoteFileInfoPath = _this_1.elBody.data("remote-file-info-path");
-		_this_1.signInPath = _this_1.elBody.data("sign-in-path");
-		_this_1.forgotPasswordPath = _this_1.elBody.data("forgot-password-path");
-		_this_1.converterName = _this_1.elBody.data("converter-name");
-		_this_1.conversionInfoPath = _this_1.elBody.data("conversion-info-path");
-		_this_1.chainingInfoPath = _this_1.elBody.data("chaining-info-path");
-		_this_1.canconvertInfoPath = _this_1.elBody.data("canconvert-info-path");
-		_this_1.defaultConverterMeta = $("#default-converter").html();
-		_this_1.GoogleClientId = _this_1.elBody.data("google-clientid");
-		_this_1.GoogleDeveloperKey = _this_1.elBody.data("google-developerkey");
-		_this_1.DropboxAppKey = _this_1.elBody.data("dropbox-app-key");
-		_this_1.paddleVendorId = _this_1.elBody.data("paddle-vendorid");
-		_this_1.elPricesContainer = _this_1.elBody.find(".prices-container");
-		_this_1.elTrialWaitMessage = _this_1.elPricesContainer.find(".trial-wait-message");
-		_this_1.elSignupMessagePanel = _this_1.elPricesContainer.find(".signup-message-panel");
-		_this_1.elWorkArea = _this_1.elBody.find(".work-area");
-		_this_1.elGrayOverlay = _this_1.elBody.find(".gray-overlay");
 		_this_1.elBody.find(".language-button").on("click", function() {
 			return Utils.showAsDialog($(".language-dialog"));
 		});
@@ -1827,17 +1666,6 @@ var BodyDom = (function(_super) {
 		_this_1.elDropZone = _this_1.elBody.find('.JSdR, .JSdR .StP');
 		_this_1.elCloseToast = _this_1.elBody.find('.js-close-toast');
 		_this_1.elHeader = _this_1.elBody.find('.layout-header');
-		_this_1.elGooglePickerBtn = _this_1.elBody.find(".JSgP");
-		_this_1.elDropboxChooseBtn = _this_1.elBody.find(".js-dropbox-choose-btn");
-		_this_1.elErrorContainer = _this_1.elBody.find(".error-container");
-		_this_1.labelEnterFileLocation = _this_1.elBody.data('js-label-enter-file-location');
-		_this_1.labelRotateAll = _this_1.elBody.data('js-label-rotate-all');
-		_this_1.labelConversionError = _this_1.elBody.data('js-label-conversion-error');
-		_this_1.labelRotateSelected = _this_1.elBody.data('js-label-rotate-selected');
-		_this_1.labelUnableToAdd = _this_1.elBody.data('js-label-unable-to-add');
-		_this_1.labelConversionFailed = _this_1.elBody.data('js-label-conversion-failed');
-		_this_1.labelUnableToAccess = _this_1.elBody.data('js-label-unable-to-access');
-		_this_1.labelSuspended = _this_1.elBody.data('js-label-suspended');
 		_this_1.labelMultifileViolation = _this_1.elBody.data('js-label-multifile-violation');
 		_this_1.configureDropbox();
 		_this_1.initUi();
