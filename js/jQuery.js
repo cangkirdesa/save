@@ -203,6 +203,23 @@ var ConvertCounter = new function() {
 	var originCount = 90000000;
 	var ratePerDay = (2000000 / 30);
 };
+var Navigation = (function() {
+	function Navigation() {}
+	Navigation.init = function() {
+		window.onpopstate = function(e) {
+			if(e.state && e.state.targetId) {
+				var target = $("#cid=" + e.state.targetId);
+				if(target.length > 0 && target.data("history-back")) {
+					target.data("history-back")();
+					return;
+				}
+			} else if(Utils.getLocationParameter('cid')) {
+				Utils.reloadPage();
+			}
+		};
+	};
+	return Navigation;
+}());
 var Init = (function() {
 	function Init() {}
 	Init.domReady = function() {
