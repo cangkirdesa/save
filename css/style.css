@@ -1,19 +1,19 @@
-@import "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;700&display=swap";.LytH h1 span.CvI{background-image:url('.../save/img/logo.svg')}
-.ImgW{background-image:url('.../save/img/doc.svg')}
-.ImgF{background-image:url('.../save/img/pdf.svg')}
-.ImgE{background-image:url('.../save/img/xls.svg')}
-.ImgP{background-image:url('.../save/img/ppt.svg')}
-.ImgC{background-image:url('.../save/img/cdr.svg')}
-.ImgZ{background-image:url('.../save/img/zip.svg')}
-.ImGG{background-image:url('.../save/img/regulasi.svg')}
-.ImgK{background-image:url('.../save/img/kepresidenan.svg')}
-.ImgD{background-image:url('.../save/img/mendes.svg')}
-.ImgDg{background-image:url('.../save/img/mendagri.svg')}
-.ImgPK{background-image:url('.../save/img/pmk.svg')}
-.ImgST{background-image:url('.../save/img/situbondo.svg')}
-.ImgS{background-image:url('.../save/img/sk.svg')}
-.ImgL{background-image:url('.../save/img/dok.svg')}
-.ImgDT{background-image:url('.../save/img/tools.svg')}
+@import "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;700&display=swap";.LytH h1 span.CvI{background-image:url('.../img/logo.svg')}
+.ImgW{background-image:url('.../img/doc.svg')}
+.ImgF{background-image:url('.../img/pdf.svg')}
+.ImgE{background-image:url('.../img/xls.svg')}
+.ImgP{background-image:url('.../img/ppt.svg')}
+.ImgC{background-image:url('.../img/cdr.svg')}
+.ImgZ{background-image:url('.../img/zip.svg')}
+.ImGG{background-image:url('.../img/regulasi.svg')}
+.ImgK{background-image:url('.../img/kepresidenan.svg')}
+.ImgD{background-image:url('.../img/mendes.svg')}
+.ImgDg{background-image:url('.../img/mendagri.svg')}
+.ImgPK{background-image:url('.../img/pmk.svg')}
+.ImgST{background-image:url('.../img/situbondo.svg')}
+.ImgS{background-image:url('.../img/sk.svg')}
+.ImgL{background-image:url('.../img/dok.svg')}
+.ImgDT{background-image:url('.../img/tools.svg')}
 html{margin:0;position:relative}
 body{display:block;margin:0;font-family:ibm plex sans,sans-serif;color:#313131}
 body .LyCT{padding:0 50px;position:relative}
