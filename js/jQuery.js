@@ -190,34 +190,6 @@ var BodyDom = (function(_super) {
 	};
 	return BodyDom;
 }(Dom));
-var Orders = (function() {
-	function Orders() {}
-	Orders.orderClick = function(product) {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Order",
-			"action": "Order click",
-			"label": product
-		});
-	};
-	Orders.signUpClick = function() {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Order",
-			"action": "SignUp click"
-		});
-	};
-	Orders.checkoutEvent = function(event, product) {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Checkout",
-			"action": event,
-			"label": product
-		});
-	};
-	Orders.category = "Orders";
-	return Orders;
-}());
 var DataLayerPush = (function() {
 	function DataLayerPush() {}
 	DataLayerPush.send = function(any) {
