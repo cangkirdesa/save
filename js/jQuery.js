@@ -30,22 +30,6 @@ var ErrorLogger = (function() {
 	};
 	return ErrorLogger;
 }());
-var Eventable = (function() {
-	function Eventable() {
-		this.handlers = {};
-	}
-	Eventable.prototype.trigger = function(eventType) {
-		var _this = this;
-		var args = [];
-		for(var _i = 1; _i < arguments.length; _i++) {
-			args[_i - 1] = arguments[_i];
-		}
-		eventType.split(" ").forEach(function(e) {
-			return $(_this).triggerHandler(e, args);
-		});
-	};
-	return Eventable;
-}());
 var __extends = (this && this.__extends) || (function() {
 	var extendStatics = function(d, b) {
 		extendStatics = Object.setPrototypeOf || ({
