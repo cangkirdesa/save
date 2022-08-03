@@ -30,29 +30,22 @@ var ErrorLogger = (function() {
 	};
 	return ErrorLogger;
 }());
-var __extends = (this && this.__extends) || (function() {
-	var extendStatics = function(d, b) {
-		extendStatics = Object.setPrototypeOf || ({
-				__proto__: []
-			}
-			instanceof Array && function(d, b) {
-				d.__proto__ = b;
-			}) || function(d, b) {
-			for(var p in b)
-				if(Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p];
-		};
-		return extendStatics(d, b);
-	};
-	return function(d, b) {
-		if(typeof b !== "function" && b !== null) throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
-		extendStatics(d, b);
-
-		function __() {
-			this.constructor = d;
+var Eventable = (function() {
+	function Eventable() {
+		this.handlers = {};
+	}
+	Eventable.prototype.trigger = function(eventType) {
+		var _this = this;
+		var args = [];
+		for(var _i = 1; _i < arguments.length; _i++) {
+			args[_i - 1] = arguments[_i];
 		}
-		d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+		eventType.split(" ").forEach(function(e) {
+			return $(_this).triggerHandler(e, args);
+		});
 	};
-})();
+	return Eventable;
+}());
 var Dom = (function(_super) {
 	__extends(Dom, _super);
 
