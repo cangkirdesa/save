@@ -171,6 +171,9 @@ var BodyDom = (function(_super) {
 				_this.closeTopNav(_this.elTopNavContainer);
 			}
 		});
+		jQuery('.GrT').click(function() {
+			$(this).parent().toggleClass('open');
+		});
 		$('.JScMM, .UsM .MnI').click(function() {
 			return _this_1.closeTopNav(_this.elTopNavContainer);
 		});
@@ -196,147 +199,12 @@ var Orders = (function() {
 }());
 var DataLayerPush = (function() {
 	function DataLayerPush() {}
-	DataLayerPush.send = function(any) {
-		if(window["dataLayer"] && window["google_tag_manager"]) {
-			dataLayer.push.apply(null, arguments);
-		}
-	};
-	DataLayerPush.fileSelectLocal = function(type) {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Conversion",
-			"action": "Conversion.Select.Local",
-			"label": type
-		});
-	};
-	DataLayerPush.fileSelectRemote = function(type) {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Conversion",
-			"action": "Conversion.Select.Remote",
-			"label": type
-		});
-	};
-	DataLayerPush.fileSelectFail = function(fileName) {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Conversion",
-			"action": "Conversion.Select.Fail",
-			"label": fileName
-		});
-	};
-	DataLayerPush.fileUploadStart = function(type) {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Conversion",
-			"action": "Conversion.Upload.Start",
-			"label": type
-		});
-	};
-	DataLayerPush.fileUploadSuccess = function(type) {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Conversion",
-			"action": "Conversion.Upload.Success",
-			"label": type
-		});
-	};
-	DataLayerPush.fileUploadFail = function(type) {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Conversion",
-			"action": "Conversion.Upload.Fail",
-			"label": type
-		});
-	};
-	DataLayerPush.conversionStart = function(srcFormat, dstFormat) {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Conversion",
-			"action": "Conversion.Convert.Start",
-			"label": srcFormat + " -> " + dstFormat
-		});
-	};
-	DataLayerPush.conversionSuccess = function() {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Conversion",
-			"action": "Conversion.Convert.Success"
-		});
-	};
-	DataLayerPush.conversionFail = function(srcFormat, dstFormat) {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Conversion",
-			"action": "Conversion.Convert.Fail",
-			"label": srcFormat + " -> " + dstFormat
-		});
-	};
-	DataLayerPush.conversionFixPdf = function(srcFormat, dstFormat) {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Conversion",
-			"action": "Conversion.Convert.Fixing.PDF",
-			"label": srcFormat + " -> " + dstFormat
-		});
-	};
-	DataLayerPush.conversionFixOo = function(srcFormat, dstFormat) {
-		DataLayerPush.send({
-			"event": "SendEvent",
-			"category": "Conversion",
-			"action": "Conversion.Convert.Fixing.OO",
-			"label": srcFormat + " -> " + dstFormat
-		});
-	};
 	DataLayerPush.orders = Orders;
 	return DataLayerPush;
 }());
 var ConvertCounter = new function() {
 	var originCount = 90000000;
 	var ratePerDay = (2000000 / 30);
-	this.init = function() {
-		this.originDate = new Date(2013, 8, 30, 0, 0, 0, 0);
-		this.calculateCount();
-		this.loop();
-	};
-	this.loop = function() {
-		var rand = Math.round(Math.random() * 3500) + 500;
-		this.interval = setTimeout($.proxy(function() {
-			this.calculateCount();
-			this.loop();
-		}, this), rand);
-	};
-	this.calculateCount = function() {
-		this.now = new Date();
-		this.elapsedDays = (this.now.getTime() - this.originDate.getTime()) / 1000 / 60 / 60 / 24;
-		this.growthRate = Math.pow(1.1, this.elapsedDays / 30);
-		this.count = originCount + Math.round(this.elapsedDays * ratePerDay * this.growthRate);
-		this.set(this.count);
-	};
-	this.set = function(number) {
-		var elCounter = $("#convert-counter");
-		var template = elCounter.data("template");
-		if(elCounter.length && template) {
-			elCounter.html(template.replace("{0}", "<span class=\"count BrT\">" + number.toString().substr(0, 12) + "</span>"));
-		}
-	};
-	this.stop = function() {
-		clearInterval(this.interval);
-	};
-	this.insertNumberGroupSeparator = function(number) {
-		number = number.toString().split("").reverse().join("");
-		var chunks = [],
-			i = 0,
-			count = number.length;
-		while(i < count) {
-			chunks.push(number.slice(i, i += 3));
-		}
-		var numberGroupSeparator = $("body").data("number-group-separator");
-		if(numberGroupSeparator === "&#160;") numberGroupSeparator = " ";
-		number = chunks.join(numberGroupSeparator);
-		number = number.toString().split("").reverse().join("");
-		return number;
-	};
 };
 var Navigation = (function() {
 	function Navigation() {}
@@ -361,29 +229,6 @@ var Init = (function() {
 		var bodyDom = new BodyDom();
 		User.init(new UserDom(bodyDom));
 		ConvertCounter.init();
-		StarRatings.init(new StarRatingsDom(bodyDom));
-		if(bodyDom.isAction("converter")) {
-			User.dataPro().done(function(authStatus) {
-				return Converter.init(bodyDom, authStatus);
-			});
-			var dragAndDropDom = new DragAndDropDom(bodyDom);
-			GooglePicker.registerEvents(bodyDom, bodyDom.getGoogleDeveloperKey(), bodyDom.getGoogleClientId(), bodyDom.getLocale());
-			DropboxIntegration.registerEvents(bodyDom);
-			setTimeout(function() {
-				if(!bodyDom.isAction('display-result')) {
-					Google.loadModule("auth").done(function() {
-						return bodyDom.enableGoogleDrive();
-					});
-					DropboxIntegration.loadLib().done(function() {
-						return bodyDom.enableDropbox();
-					});
-				}
-			}, 1500);
-		} else if(bodyDom.isAction("membership") || bodyDom.isAction("ordercompleted")) {
-			Prices.show(new PricesDom(bodyDom), bodyDom.getPaddleVendorId());
-		} else if(bodyDom.isAction("offers")) {
-			Prices.setPriceWithDiscount(new PricesDom(bodyDom));
-		}
 	};
 	return Init;
 }());
