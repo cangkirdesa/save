@@ -80,15 +80,6 @@ var Dom = (function(_super) {
 	};
 	return Dom;
 }(Eventable));
-String.prototype.getFileExtension = function() {
-	return this.split(".").pop().toLowerCase();
-};
-String.prototype.isUrl = function() {
-	return this.toLowerCase().indexOf("http") === 0;
-};
-String.prototype.isDataUrl = function() {
-	return this.toLowerCase().indexOf("data:") === 0;
-};
 var Utils = (function() {
 	function Utils() {}
 	Utils.toggleSlideEl = function(el) {
