@@ -134,7 +134,7 @@ var BodyDom = (function(_super) {
 		var _this = _this_1;
 		_this_1.locale = $("html").attr("lang");
 		_this_1.elBody = $("body");
-		jQuery('.js-show-all-converters').click(function() {
+		jQuery('.JSR').click(function() {
 			var button = jQuery(this);
 			button.parent().find('.hidden').removeClass('hidden');
 			button.addClass('hidden');
