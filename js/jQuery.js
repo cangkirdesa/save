@@ -226,29 +226,6 @@ var Init = (function() {
 		var bodyDom = new BodyDom();
 		User.init(new UserDom(bodyDom));
 		ConvertCounter.init();
-		StarRatings.init(new StarRatingsDom(bodyDom));
-		if(bodyDom.isAction("converter")) {
-			User.dataPro().done(function(authStatus) {
-				return Converter.init(bodyDom, authStatus);
-			});
-			var dragAndDropDom = new DragAndDropDom(bodyDom);
-			GooglePicker.registerEvents(bodyDom, bodyDom.getGoogleDeveloperKey(), bodyDom.getGoogleClientId(), bodyDom.getLocale());
-			DropboxIntegration.registerEvents(bodyDom);
-			setTimeout(function() {
-				if(!bodyDom.isAction('display-result')) {
-					Google.loadModule("auth").done(function() {
-						return bodyDom.enableGoogleDrive();
-					});
-					DropboxIntegration.loadLib().done(function() {
-						return bodyDom.enableDropbox();
-					});
-				}
-			}, 1500);
-		} else if(bodyDom.isAction("membership") || bodyDom.isAction("ordercompleted")) {
-			Prices.show(new PricesDom(bodyDom), bodyDom.getPaddleVendorId());
-		} else if(bodyDom.isAction("offers")) {
-			Prices.setPriceWithDiscount(new PricesDom(bodyDom));
-		}
 	};
 	return Init;
 }());
