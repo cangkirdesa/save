@@ -190,6 +190,10 @@ var BodyDom = (function(_super) {
 	};
 	return BodyDom;
 }(Dom));
+var Orders = (function() {
+	function Orders() {}
+	return Orders;
+}());
 var DataLayerPush = (function() {
 	function DataLayerPush() {}
 	DataLayerPush.send = function(any) {
